@@ -39,6 +39,7 @@ public class TransactionRelayService {
     }
 
     public RelayResult relay(String businessCode, String requestBody, RelayOptions options) {
+        BusinessModuleInfo module = catalog.findByCode(businessCode);
         String targetUrl = resolveTargetUrl(businessCode, options);
         long started = System.currentTimeMillis();
         try {
@@ -68,9 +69,15 @@ public class TransactionRelayService {
                     targetUrl,
                     502,
                     System.currentTimeMillis() - started,
-                    "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}"
+                    connectionErrorJson(targetUrl, module.localPort(), e.getMessage())
             );
         }
+    }
+
+    private String connectionErrorJson(String targetUrl, int localPort, String message) {
+        return """
+                {"error":"%s","targetUrl":"%s","hint":"대상 WAS(포트 %d)가 기동 중인지 확인하세요. ET=8098, UD=8097"}
+                """.formatted(escapeJson(message), escapeJson(targetUrl), localPort);
     }
 
     private DemoUiProperties.DeploymentMode resolveMode(RelayOptions options) {

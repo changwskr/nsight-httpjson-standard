@@ -7,6 +7,7 @@ public class TransactionContext {
     private final StandardHeader header;
     private final Instant startTime;
     private String pathBusinessCode;
+    private StandardHeader requestHeader;
 
     public TransactionContext(StandardHeader header, Instant startTime) {
         this.header = header;
@@ -17,6 +18,8 @@ public class TransactionContext {
     public Instant getStartTime() { return startTime; }
     public String getPathBusinessCode() { return pathBusinessCode; }
     public void setPathBusinessCode(String pathBusinessCode) { this.pathBusinessCode = pathBusinessCode; }
+    public StandardHeader getRequestHeader() { return requestHeader; }
+    public void setRequestHeader(StandardHeader requestHeader) { this.requestHeader = requestHeader; }
     public String getGuid() { return header.getGuid(); }
     public String getTraceId() { return header.getTraceId(); }
     public String getBusinessCode() { return header.getBusinessCode(); }

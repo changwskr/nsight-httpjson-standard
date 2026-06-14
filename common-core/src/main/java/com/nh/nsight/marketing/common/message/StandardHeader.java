@@ -28,6 +28,10 @@ public class StandardHeader {
     private String clientIp;
     private String requestTime;
     private String responseTime;
+    private String transactionIntime;
+    private String transactionOuttime;
+    private String systemDate;
+    private String bizDate;
     private String apId;
 
     public String getSystemId() { return systemId; }
@@ -58,6 +62,14 @@ public class StandardHeader {
     public void setRequestTime(String requestTime) { this.requestTime = requestTime; }
     public String getResponseTime() { return responseTime; }
     public void setResponseTime(String responseTime) { this.responseTime = responseTime; }
+    public String getTransactionIntime() { return transactionIntime; }
+    public void setTransactionIntime(String transactionIntime) { this.transactionIntime = transactionIntime; }
+    public String getTransactionOuttime() { return transactionOuttime; }
+    public void setTransactionOuttime(String transactionOuttime) { this.transactionOuttime = transactionOuttime; }
+    public String getSystemDate() { return systemDate; }
+    public void setSystemDate(String systemDate) { this.systemDate = systemDate; }
+    public String getBizDate() { return bizDate; }
+    public void setBizDate(String bizDate) { this.bizDate = bizDate; }
     public String getApId() { return apId; }
     public void setApId(String apId) { this.apId = apId; }
 
@@ -77,6 +89,10 @@ public class StandardHeader {
         copy.setClientIp(clientIp);
         copy.setRequestTime(requestTime);
         copy.setResponseTime(responseTime);
+        copy.setTransactionIntime(transactionIntime);
+        copy.setTransactionOuttime(transactionOuttime);
+        copy.setSystemDate(systemDate);
+        copy.setBizDate(bizDate);
         copy.setApId(apId);
         return copy;
     }

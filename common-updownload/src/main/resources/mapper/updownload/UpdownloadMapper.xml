@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nh.nsight.marketing.updownload.mapper.UpdownloadMapper">
+    <insert id="insertFile" parameterType="map">
+        INSERT INTO UD_FILE (
+            FILE_ID,
+            ORIGINAL_NAME,
+            STORED_PATH,
+            CONTENT_TYPE,
+            FILE_SIZE,
+            UPLOAD_USER,
+            UPLOAD_TIME,
+            BUSINESS_CODE,
+            DESCRIPTION
+        ) VALUES (
+            #{fileId},
+            #{originalName},
+            #{storedPath},
+            #{contentType},
+            #{fileSize},
+            #{uploadUser},
+            #{uploadTime},
+            #{businessCode},
+            #{description}
+        )
+    </insert>
+
+    <select id="selectFileById" parameterType="map" resultType="map">
+        SELECT FILE_ID AS "fileId",
+               ORIGINAL_NAME AS "originalName",
+               STORED_PATH AS "storedPath",
+               CONTENT_TYPE AS "contentType",
+               FILE_SIZE AS "fileSize",
+               UPLOAD_USER AS "uploadUser",
+               UPLOAD_TIME AS "uploadTime",
+               BUSINESS_CODE AS "businessCode",
+               DESCRIPTION AS "description"
+          FROM UD_FILE
+         WHERE FILE_ID = #{fileId}
+    </select>
+
+    <select id="selectFileList" parameterType="map" resultType="map">
+        SELECT FILE_ID AS "fileId",
+               ORIGINAL_NAME AS "originalName",
+               CONTENT_TYPE AS "contentType",
+               FILE_SIZE AS "fileSize",
+               UPLOAD_USER AS "uploadUser",
+               UPLOAD_TIME AS "uploadTime",
+               BUSINESS_CODE AS "businessCode",
+               DESCRIPTION AS "description"
+          FROM UD_FILE
+         WHERE BUSINESS_CODE = #{businessCode}
+         ORDER BY UPLOAD_TIME DESC
+    </select>
+</mapper>

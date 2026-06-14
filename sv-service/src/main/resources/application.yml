@@ -70,3 +70,6 @@ nsight:
   timeout:
     online-transaction-seconds: 5
     db-query-seconds: 3
+  etc:
+    record-enabled: true
+    record-url: http://localhost:8098/et/transaction-io/record

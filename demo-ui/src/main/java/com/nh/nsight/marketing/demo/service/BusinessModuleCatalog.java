@@ -30,7 +30,9 @@ public class BusinessModuleCatalog {
             new ModuleDefinition("CS", "Common Service", "지원", 8093),
             new ModuleDefinition("CT", "Contents", "지원", 8094),
             new ModuleDefinition("MG", "Message", "지원", 8095),
-            new ModuleDefinition("OM", "Operation Management", "운영", 8096)
+            new ModuleDefinition("OM", "Operation Management", "운영", 8096),
+            new ModuleDefinition("UD", "Common UpDownload", "공통", 8097),
+            new ModuleDefinition("ET", "Common ETC", "공통", 8098)
     );
 
     private final List<BusinessModuleInfo> modules;

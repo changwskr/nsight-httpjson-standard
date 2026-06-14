@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSIGHT 트랜잭션 로그 조회 (ET)</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <style>
+    .panel-body { padding: 18px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 0.88rem;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:hover { background: rgba(56, 189, 248, 0.06); }
+    tbody tr.selected { background: rgba(129, 140, 248, 0.12); }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+
+    .status-ok { color: var(--success); font-weight: 700; }
+    .status-fail { color: var(--fail); font-weight: 700; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    .detail-box {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 280px;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #dbeafe;
+    }
+
+    .detail-head {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .btn-link {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .pagination {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .page-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .page-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #0f172a;
+      border-color: transparent;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .page-info {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-left: 8px;
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.2);
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.55);
+    }
+
+    .toolbar-actions {
+      flex: 1 0 100%;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>NSIGHT 트랜잭션 로그 DB 조회 (ET)</h1>
+      <p>
+        common-etc의 <code>TX_IO_LOG</code> 테이블을 <code>ET.TransactionIo.list</code> /
+        <code>ET.TransactionIo.detail</code> 거래로 조회합니다.
+        사용 전 <strong>common-etc(포트 8098)</strong>를 기동하세요.
+      </p>
+      <div class="nav-links">
+        <a class="nav-link" href="/index.html">← 업무 목록</a>
+        <a class="nav-link" href="/et/index.html">단일 거래 테스트</a>
+        <a class="nav-link" href="/et/index-multi.html">다중 거래 테스트</a>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <div class="field">
+        <label for="deploymentMode">배포 모드</label>
+        <select id="deploymentMode">
+          <option value="bootrun">bootRun (포트 8098)</option>
+          <option value="tomcat">Tomcat (Gateway)</option>
+        </select>
+      </div>
+      <div class="field" id="bootrunHostField">
+        <label for="bootrunHost">bootRun Host</label>
+        <input id="bootrunHost" type="text" value="http://localhost">
+      </div>
+      <div class="field" id="tomcatGatewayField" hidden>
+        <label for="tomcatGatewayUrl">Tomcat Gateway URL</label>
+        <input id="tomcatGatewayUrl" type="text" value="http://localhost:8080">
+      </div>
+      <div class="field">
+        <label for="filterBusinessCode">원천 업무코드</label>
+        <input id="filterBusinessCode" type="text" placeholder="예: SV (전체는 비움)">
+      </div>
+      <div class="field">
+        <label for="filterSystemDate">systemDate</label>
+        <input id="filterSystemDate" type="text" placeholder="yyyyMMdd (비우면 전체)">
+      </div>
+      <div class="field">
+        <label for="filterServiceId">serviceId</label>
+        <input id="filterServiceId" type="text" placeholder="선택">
+      </div>
+      <div class="field">
+        <label for="filterTraceId">traceId</label>
+        <input id="filterTraceId" type="text" placeholder="선택">
+      </div>
+      <div class="field">
+        <label for="filterGuid">guid</label>
+        <input id="filterGuid" type="text" placeholder="선택">
+      </div>
+      <div class="toolbar-actions actions">
+        <button class="btn-primary" id="searchBtn" type="button">조회</button>
+        <button class="btn-secondary" id="resetBtn" type="button">조건 초기화</button>
+      </div>
+    </section>
+
+    <div class="meta">
+      <div class="meta-card">
+        <div class="label">요청 URL</div>
+        <div class="value" id="metaTargetUrl">-</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">조회 결과</div>
+        <div class="value" id="listStatus">-</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">선택 GUID</div>
+        <div class="value mono" id="selectedGuid">-</div>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-bottom: 20px;">
+      <div class="panel-head">
+        <h2>트랜잭션 로그 목록</h2>
+        <div class="panel-actions">
+          <button class="btn-danger" id="deleteAllBtn" type="button">DB 전체 삭제</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="hint">행을 클릭하면 입·출력 StandardHeader 상세를 아래에서 확인할 수 있습니다.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>recordTime</th>
+                <th>business</th>
+                <th>serviceId</th>
+                <th>guid</th>
+                <th>traceId</th>
+                <th>status</th>
+                <th>elapsed</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr><td colspan="7" class="empty">조회 버튼을 눌러 목록을 불러오세요.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="paginationBar" hidden>
+          <button class="page-btn" id="prevPageBtn" type="button">PREV</button>
+          <div id="pageNumbers"></div>
+          <button class="page-btn" id="nextPageBtn" type="button">NEXT</button>
+          <span class="page-info" id="pageInfo"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>입·출력 StandardHeader 상세</h2>
+        <button class="btn-link" id="refreshDetailBtn" type="button" hidden>상세 재조회</button>
+      </div>
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div>
+            <h3 class="detail-head">inputHeader (STF)</h3>
+            <pre class="detail-box" id="inputHeaderBox">목록에서 항목을 선택하세요.</pre>
+          </div>
+          <div>
+            <h3 class="detail-head">outputHeader (ETF)</h3>
+            <pre class="detail-box" id="outputHeaderBox">목록에서 항목을 선택하세요.</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const deploymentModeEl = document.getElementById('deploymentMode');
+    const bootrunHostEl = document.getElementById('bootrunHost');
+    const tomcatGatewayUrlEl = document.getElementById('tomcatGatewayUrl');
+    const bootrunHostField = document.getElementById('bootrunHostField');
+    const tomcatGatewayField = document.getElementById('tomcatGatewayField');
+    const metaTargetUrlEl = document.getElementById('metaTargetUrl');
+    const listStatusEl = document.getElementById('listStatus');
+    const selectedGuidEl = document.getElementById('selectedGuid');
+    const logTableBodyEl = document.getElementById('logTableBody');
+    const inputHeaderBoxEl = document.getElementById('inputHeaderBox');
+    const outputHeaderBoxEl = document.getElementById('outputHeaderBox');
+    const refreshDetailBtnEl = document.getElementById('refreshDetailBtn');
+    const paginationBarEl = document.getElementById('paginationBar');
+    const pageNumbersEl = document.getElementById('pageNumbers');
+    const prevPageBtnEl = document.getElementById('prevPageBtn');
+    const nextPageBtnEl = document.getElementById('nextPageBtn');
+    const pageInfoEl = document.getElementById('pageInfo');
+
+    const PAGE_SIZE = 3;
+    let selectedRow = null;
+    let currentPage = 1;
+    let totalPages = 0;
+
+    function todaySystemDate() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}${m}${d}`;
+    }
+
+    function newGuid() {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function nowIsoKst() {
+      const now = new Date();
+      const offset = now.getTime() + (9 * 60 - now.getTimezoneOffset()) * 60000;
+      return new Date(offset).toISOString().replace('Z', '+09:00');
+    }
+
+    function buildRelayQuery() {
+      return new URLSearchParams({
+        deploymentMode: deploymentModeEl.value,
+        bootrunHost: bootrunHostEl.value.trim(),
+        tomcatGatewayUrl: tomcatGatewayUrlEl.value.trim()
+      }).toString();
+    }
+
+    function toggleDeploymentFields() {
+      const tomcat = deploymentModeEl.value === 'tomcat';
+      bootrunHostField.hidden = tomcat;
+      tomcatGatewayField.hidden = !tomcat;
+    }
+
+    async function refreshTargetUrl() {
+      const response = await fetch(`/api/business-modules/ET/target-url?${buildRelayQuery()}`);
+      if (!response.ok) {
+        metaTargetUrlEl.textContent = 'URL 계산 실패';
+        return;
+      }
+      const target = await response.json();
+      metaTargetUrlEl.textContent = target.targetUrl;
+    }
+
+    function readFilters() {
+      const filters = {};
+      const businessCode = document.getElementById('filterBusinessCode').value.trim();
+      const systemDate = document.getElementById('filterSystemDate').value.trim();
+      const serviceId = document.getElementById('filterServiceId').value.trim();
+      const traceId = document.getElementById('filterTraceId').value.trim();
+      const guid = document.getElementById('filterGuid').value.trim();
+      if (businessCode) filters.businessCode = businessCode;
+      if (systemDate) filters.systemDate = systemDate;
+      if (serviceId) filters.serviceId = serviceId;
+      if (traceId) filters.traceId = traceId;
+      if (guid) filters.guid = guid;
+      return filters;
+    }
+
+    function buildHeader(serviceId, transactionCode) {
+      const systemDate = document.getElementById('filterSystemDate').value.trim() || todaySystemDate();
+      return {
+        systemId: 'NSIGHT-MP',
+        businessCode: 'ET',
+        serviceId,
+        transactionCode,
+        processingType: 'INQUIRY',
+        guid: newGuid(),
+        traceId: '',
+        channelId: 'WEBTOP',
+        userId: 'U123456',
+        branchId: '001234',
+        centerId: 'DC1',
+        requestTime: nowIsoKst(),
+        transactionIntime: nowIsoKst(),
+        transactionOuttime: '',
+        systemDate,
+        bizDate: systemDate,
+        clientIp: '127.0.0.1'
+      };
+    }
+
+    function buildListRequest(page = currentPage) {
+      return {
+        header: buildHeader('ET.TransactionIo.list', 'ET-LST-0001'),
+        body: {
+          ...readFilters(),
+          page,
+          pageSize: PAGE_SIZE
+        }
+      };
+    }
+
+    function buildDetailRequest(row) {
+      const body = {};
+      const logId = field(row, 'logId');
+      const guid = field(row, 'guid');
+      if (logId && logId !== '-') body.logId = logId;
+      if (guid && guid !== '-') body.guid = guid;
+      return {
+        header: buildHeader('ET.TransactionIo.detail', 'ET-DTL-0001'),
+        body
+      };
+    }
+
+    function field(row, name) {
+      if (!row) return '-';
+      if (row[name] != null && row[name] !== '') return row[name];
+      const upper = name.toUpperCase();
+      if (row[upper] != null && row[upper] !== '') return row[upper];
+      const key = Object.keys(row).find(k => k.toUpperCase() === upper);
+      return key ? row[key] : '-';
+    }
+
+    function parseRelayResponse(result) {
+      if (!result.responseBody) {
+        return { error: '응답 본문이 없습니다.', raw: result };
+      }
+      try {
+        return JSON.parse(result.responseBody);
+      } catch (error) {
+        return { error: result.responseBody, raw: result };
+      }
+    }
+
+    function extractBody(payload) {
+      if (payload.body) return payload.body;
+      if (payload.error) return payload;
+      return payload;
+    }
+
+    async function relayOnline(request) {
+      const response = await fetch(`/api/relay/ET/online?${buildRelayQuery()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
+      return response.json();
+    }
+
+    function renderStatusBadge(status, httpStatus) {
+      if (httpStatus && httpStatus >= 400) {
+        return `<span class="badge fail">HTTP ${httpStatus}</span>`;
+      }
+      const normalized = String(status || '').toUpperCase();
+      if (normalized.includes('SUCCESS') || normalized === 'OK') {
+        return `<span class="badge ok">${status || 'OK'}</span>`;
+      }
+      if (normalized.includes('FAIL') || normalized.includes('ERROR')) {
+        return `<span class="badge fail">${status || 'FAIL'}</span>`;
+      }
+      return `<span class="badge">${status || '-'}</span>`;
+    }
+
+    function formatJson(value) {
+      if (value == null) return '(없음)';
+      if (typeof value === 'string') {
+        try {
+          return JSON.stringify(JSON.parse(value), null, 2);
+        } catch (error) {
+          return value;
+        }
+      }
+      return JSON.stringify(value, null, 2);
+    }
+
+    function clearDetail() {
+      selectedRow = null;
+      selectedGuidEl.textContent = '-';
+      inputHeaderBoxEl.textContent = '목록에서 항목을 선택하세요.';
+      outputHeaderBoxEl.textContent = '목록에서 항목을 선택하세요.';
+      refreshDetailBtnEl.hidden = true;
+      logTableBodyEl.querySelectorAll('tr.selected').forEach(tr => tr.classList.remove('selected'));
+    }
+
+    function renderDetailFromRow(row) {
+      inputHeaderBoxEl.textContent = formatJson(row.inputHeader);
+      outputHeaderBoxEl.textContent = formatJson(row.outputHeader);
+    }
+
+    async function loadDetail(row) {
+      selectedRow = row;
+      selectedGuidEl.textContent = field(row, 'guid');
+      refreshDetailBtnEl.hidden = false;
+      logTableBodyEl.querySelectorAll('tr').forEach(tr => tr.classList.remove('selected'));
+      const current = logTableBodyEl.querySelector(`tr[data-log-id="${field(row, 'logId')}"]`);
+      if (current) current.classList.add('selected');
+
+      renderDetailFromRow(row);
+
+      const result = await relayOnline(buildDetailRequest(row));
+      const payload = parseRelayResponse(result);
+      const body = extractBody(payload);
+
+      if (body.error || result.httpStatus >= 400) {
+        inputHeaderBoxEl.textContent = formatJson(body);
+        outputHeaderBoxEl.textContent = `상세 조회 실패 (HTTP ${result.httpStatus})`;
+        return;
+      }
+
+      renderDetailFromRow(body);
+    }
+
+    function renderPagination(pageMeta) {
+      const page = pageMeta.page || 1;
+      const total = pageMeta.totalPages || 0;
+      const totalCount = pageMeta.totalCount || 0;
+      const hasNext = !!pageMeta.hasNext;
+
+      currentPage = page;
+      totalPages = total;
+
+      if (totalCount === 0) {
+        paginationBarEl.hidden = true;
+        return;
+      }
+
+      paginationBarEl.hidden = false;
+      prevPageBtnEl.disabled = page <= 1;
+      nextPageBtnEl.disabled = !hasNext;
+
+      pageNumbersEl.innerHTML = '';
+      for (let i = 1; i <= total; i += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'page-btn' + (i === page ? ' active' : '');
+        button.textContent = String(i);
+        button.addEventListener('click', () => loadList(i).catch(err => alert(err.message)));
+        pageNumbersEl.appendChild(button);
+      }
+
+      pageInfoEl.textContent = `${page} / ${total} 페이지 · ${totalCount}건 · 페이지당 ${PAGE_SIZE}건`;
+    }
+
+    function renderListRows(rows) {
+      if (rows.length === 0) {
+        logTableBodyEl.innerHTML = '<tr><td colspan="7" class="empty">조건에 맞는 트랜잭션 로그가 없습니다.</td></tr>';
+        return;
+      }
+
+      logTableBodyEl.innerHTML = rows.map(row => {
+        const logId = field(row, 'logId');
+        const status = field(row, 'resultStatus');
+        const statusClass = String(status).toUpperCase().includes('SUCCESS') ? 'status-ok'
+          : String(status).toUpperCase().includes('FAIL') ? 'status-fail' : '';
+        const elapsed = field(row, 'elapsedTimeMs');
+        return `
+          <tr data-log-id="${logId}">
+            <td>${field(row, 'recordTime')}</td>
+            <td>${field(row, 'businessCode')}</td>
+            <td class="mono">${field(row, 'serviceId')}</td>
+            <td class="mono">${field(row, 'guid')}</td>
+            <td class="mono">${field(row, 'traceId')}</td>
+            <td class="${statusClass}">${status}</td>
+            <td>${elapsed === '-' ? '-' : elapsed + ' ms'}</td>
+          </tr>`;
+      }).join('');
+
+      logTableBodyEl.querySelectorAll('tr[data-log-id]').forEach((tr, index) => {
+        tr.addEventListener('click', () => loadDetail(rows[index]));
+      });
+    }
+
+    async function loadList(page = 1) {
+      clearDetail();
+      currentPage = page;
+      listStatusEl.innerHTML = '<span class="empty">조회 중...</span>';
+      logTableBodyEl.innerHTML = '<tr><td colspan="7" class="empty">조회 중...</td></tr>';
+      paginationBarEl.hidden = true;
+
+      const result = await relayOnline(buildListRequest(page));
+      const payload = parseRelayResponse(result);
+      const body = extractBody(payload);
+
+      if (body.error || result.httpStatus >= 400) {
+        listStatusEl.innerHTML = `<span class="badge fail">ERROR</span> HTTP ${result.httpStatus}`;
+        logTableBodyEl.innerHTML = `<tr><td colspan="7" class="empty">${body.error || body.hint || '조회 실패'}</td></tr>`;
+        paginationBarEl.hidden = true;
+        return;
+      }
+
+      const rows = body.transactions || [];
+      const totalCount = body.totalCount ?? rows.length;
+      listStatusEl.innerHTML = `<span class="badge ok">OK</span> ${result.elapsedMs} ms · 총 ${totalCount}건`;
+
+      renderListRows(rows);
+      renderPagination({
+        page: body.page || page,
+        totalPages: body.totalPages || 0,
+        totalCount,
+        hasNext: body.hasNext
+      });
+    }
+
+    function resetFilters() {
+      document.getElementById('filterBusinessCode').value = '';
+      document.getElementById('filterSystemDate').value = '';
+      document.getElementById('filterServiceId').value = '';
+      document.getElementById('filterTraceId').value = '';
+      document.getElementById('filterGuid').value = '';
+    }
+
+    async function deleteAllLogs() {
+      const confirmed = confirm(
+        'TX_IO_LOG 테이블의 트랜잭션 로그를 모두 삭제합니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?'
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      const result = await relayOnline({
+        header: buildHeader('ET.TransactionIo.deleteAll', 'ET-DEL-0001'),
+        body: {}
+      });
+
+      if (result.httpStatus >= 400) {
+        alert('삭제 실패 (HTTP ' + result.httpStatus + ')');
+        return;
+      }
+
+      const payload = parseRelayResponse(result);
+      const body = extractBody(payload);
+      const status = payload.result?.status;
+
+      if (status === 'ERROR' || body.error) {
+        alert(body.error || payload.result?.errorMessage || payload.result?.message || '삭제 실패');
+        return;
+      }
+
+      alert(`${body.message || '삭제 완료'} (${body.deletedCount ?? 0}건)`);
+      await loadList(1);
+    }
+
+    deploymentModeEl.addEventListener('change', async () => {
+      toggleDeploymentFields();
+      await refreshTargetUrl();
+    });
+    bootrunHostEl.addEventListener('change', refreshTargetUrl);
+    tomcatGatewayUrlEl.addEventListener('change', refreshTargetUrl);
+    document.getElementById('searchBtn').addEventListener('click', () => loadList(1).catch(err => alert(err.message)));
+    document.getElementById('resetBtn').addEventListener('click', resetFilters);
+    document.getElementById('deleteAllBtn').addEventListener('click', () => deleteAllLogs().catch(err => alert(err.message)));
+    prevPageBtnEl.addEventListener('click', () => {
+      if (currentPage > 1) loadList(currentPage - 1).catch(err => alert(err.message));
+    });
+    nextPageBtnEl.addEventListener('click', () => {
+      if (currentPage < totalPages) loadList(currentPage + 1).catch(err => alert(err.message));
+    });
+    refreshDetailBtnEl.addEventListener('click', () => {
+      if (selectedRow) loadDetail(selectedRow).catch(err => alert(err.message));
+    });
+
+    async function init() {
+      const configRes = await fetch('/api/config');
+      const config = await configRes.json();
+      deploymentModeEl.value = config.deploymentMode || 'bootrun';
+      bootrunHostEl.value = config.bootrunHost || 'http://localhost';
+      tomcatGatewayUrlEl.value = config.tomcatGatewayUrl || 'http://localhost:8080';
+      toggleDeploymentFields();
+      await refreshTargetUrl();
+    }
+
+    init().catch(error => alert('화면 초기화 실패: ' + error.message));
+  </script>
+</body>
+</html>

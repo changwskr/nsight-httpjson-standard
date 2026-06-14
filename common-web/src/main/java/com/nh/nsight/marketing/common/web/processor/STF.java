@@ -1,7 +1,9 @@
 package com.nh.nsight.marketing.common.web.processor;
 
 import com.nh.nsight.marketing.common.context.TransactionContext;
+import com.nh.nsight.marketing.common.message.StandardHeader;
 import com.nh.nsight.marketing.common.message.StandardRequest;
+import com.nh.nsight.marketing.common.util.DateTimeUtil;
 import com.nh.nsight.marketing.common.web.duplicate.IdempotencyChecker;
 import com.nh.nsight.marketing.common.web.log.TransactionLogService;
 import com.nh.nsight.marketing.common.web.security.AuthorizationValidator;
@@ -35,7 +37,9 @@ public class STF {
         System.out.println("pathBusinessCode: " + pathBusinessCode);
         System.out.println("request: " + request);
         headerValidator.validateAndNormalize(request.getHeader(), pathBusinessCode == null ? null : pathBusinessCode.toUpperCase());
+        applyStartHeader(request.getHeader());
         TransactionContext context = new TransactionContext(request.getHeader(), Instant.now());
+        context.setRequestHeader(request.getHeader().copy());
         context.setPathBusinessCode(pathBusinessCode);
         MDC.put("guid", context.getGuid());
         MDC.put("traceId", context.getTraceId());
@@ -49,5 +53,24 @@ public class STF {
         System.out.println("context: " + context);
         System.out.println("====================================================================[STF.preProcess] end");
         return context;
+    }
+
+    private void applyStartHeader(StandardHeader header) {
+        header.setBusinessCode(header.getBusinessCode().toUpperCase());
+        String inTime = isBlank(header.getTransactionIntime()) ? DateTimeUtil.nowKst() : header.getTransactionIntime();
+        header.setTransactionIntime(inTime);
+        if (isBlank(header.getRequestTime())) {
+            header.setRequestTime(inTime);
+        }
+        if (isBlank(header.getSystemDate())) {
+            header.setSystemDate(DateTimeUtil.todayKst());
+        }
+        if (isBlank(header.getBizDate())) {
+            header.setBizDate(header.getSystemDate());
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

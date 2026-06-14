@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nh.nsight.marketing.etc.mapper.TransactionIoMapper">
+    <insert id="insertLog" parameterType="map">
+        INSERT INTO TX_IO_LOG (
+            LOG_ID, GUID, TRACE_ID, BUSINESS_CODE, SERVICE_ID, TRANSACTION_CODE, SYSTEM_DATE,
+            RESULT_STATUS, RESULT_CODE, ERROR_CODE, ELAPSED_TIME_MS, RECORD_TIME,
+            IN_SYSTEM_ID, IN_BUSINESS_CODE, IN_SERVICE_ID, IN_TRANSACTION_CODE, IN_PROCESSING_TYPE,
+            IN_GUID, IN_TRACE_ID, IN_CHANNEL_ID, IN_USER_ID, IN_BRANCH_ID, IN_CENTER_ID, IN_CLIENT_IP,
+            IN_REQUEST_TIME, IN_RESPONSE_TIME, IN_TRANSACTION_INTIME, IN_TRANSACTION_OUTTIME,
+            IN_SYSTEM_DATE, IN_BIZ_DATE, IN_AP_ID,
+            OUT_SYSTEM_ID, OUT_BUSINESS_CODE, OUT_SERVICE_ID, OUT_TRANSACTION_CODE, OUT_PROCESSING_TYPE,
+            OUT_GUID, OUT_TRACE_ID, OUT_CHANNEL_ID, OUT_USER_ID, OUT_BRANCH_ID, OUT_CENTER_ID, OUT_CLIENT_IP,
+            OUT_REQUEST_TIME, OUT_RESPONSE_TIME, OUT_TRANSACTION_INTIME, OUT_TRANSACTION_OUTTIME,
+            OUT_SYSTEM_DATE, OUT_BIZ_DATE, OUT_AP_ID
+        ) VALUES (
+            #{logId}, #{guid}, #{traceId}, #{businessCode}, #{serviceId}, #{transactionCode}, #{systemDate},
+            #{resultStatus}, #{resultCode}, #{errorCode}, #{elapsedTimeMs}, #{recordTime},
+            #{inSystemId}, #{inBusinessCode}, #{inServiceId}, #{inTransactionCode}, #{inProcessingType},
+            #{inGuid}, #{inTraceId}, #{inChannelId}, #{inUserId}, #{inBranchId}, #{inCenterId}, #{inClientIp},
+            #{inRequestTime}, #{inResponseTime}, #{inTransactionIntime}, #{inTransactionOuttime},
+            #{inSystemDate}, #{inBizDate}, #{inApId},
+            #{outSystemId}, #{outBusinessCode}, #{outServiceId}, #{outTransactionCode}, #{outProcessingType},
+            #{outGuid}, #{outTraceId}, #{outChannelId}, #{outUserId}, #{outBranchId}, #{outCenterId}, #{outClientIp},
+            #{outRequestTime}, #{outResponseTime}, #{outTransactionIntime}, #{outTransactionOuttime},
+            #{outSystemDate}, #{outBizDate}, #{outApId}
+        )
+    </insert>
+
+    <sql id="logColumns">
+        LOG_ID AS "logId",
+        GUID AS "guid",
+        TRACE_ID AS "traceId",
+        BUSINESS_CODE AS "businessCode",
+        SERVICE_ID AS "serviceId",
+        TRANSACTION_CODE AS "transactionCode",
+        SYSTEM_DATE AS "systemDate",
+        RESULT_STATUS AS "resultStatus",
+        RESULT_CODE AS "resultCode",
+        ERROR_CODE AS "errorCode",
+        ELAPSED_TIME_MS AS "elapsedTimeMs",
+        RECORD_TIME AS "recordTime",
+        IN_SYSTEM_ID AS "inSystemId",
+        IN_BUSINESS_CODE AS "inBusinessCode",
+        IN_SERVICE_ID AS "inServiceId",
+        IN_TRANSACTION_CODE AS "inTransactionCode",
+        IN_PROCESSING_TYPE AS "inProcessingType",
+        IN_GUID AS "inGuid",
+        IN_TRACE_ID AS "inTraceId",
+        IN_CHANNEL_ID AS "inChannelId",
+        IN_USER_ID AS "inUserId",
+        IN_BRANCH_ID AS "inBranchId",
+        IN_CENTER_ID AS "inCenterId",
+        IN_CLIENT_IP AS "inClientIp",
+        IN_REQUEST_TIME AS "inRequestTime",
+        IN_RESPONSE_TIME AS "inResponseTime",
+        IN_TRANSACTION_INTIME AS "inTransactionIntime",
+        IN_TRANSACTION_OUTTIME AS "inTransactionOuttime",
+        IN_SYSTEM_DATE AS "inSystemDate",
+        IN_BIZ_DATE AS "inBizDate",
+        IN_AP_ID AS "inApId",
+        OUT_SYSTEM_ID AS "outSystemId",
+        OUT_BUSINESS_CODE AS "outBusinessCode",
+        OUT_SERVICE_ID AS "outServiceId",
+        OUT_TRANSACTION_CODE AS "outTransactionCode",
+        OUT_PROCESSING_TYPE AS "outProcessingType",
+        OUT_GUID AS "outGuid",
+        OUT_TRACE_ID AS "outTraceId",
+        OUT_CHANNEL_ID AS "outChannelId",
+        OUT_USER_ID AS "outUserId",
+        OUT_BRANCH_ID AS "outBranchId",
+        OUT_CENTER_ID AS "outCenterId",
+        OUT_CLIENT_IP AS "outClientIp",
+        OUT_REQUEST_TIME AS "outRequestTime",
+        OUT_RESPONSE_TIME AS "outResponseTime",
+        OUT_TRANSACTION_INTIME AS "outTransactionIntime",
+        OUT_TRANSACTION_OUTTIME AS "outTransactionOuttime",
+        OUT_SYSTEM_DATE AS "outSystemDate",
+        OUT_BIZ_DATE AS "outBizDate",
+        OUT_AP_ID AS "outApId"
+    </sql>
+
+    <delete id="deleteAllLogs">
+        DELETE FROM TX_IO_LOG
+    </delete>
+
+    <select id="selectLogById" parameterType="map" resultType="map">
+        SELECT <include refid="logColumns"/>
+          FROM TX_IO_LOG
+         WHERE LOG_ID = #{logId}
+    </select>
+
+    <select id="selectLogByGuid" parameterType="map" resultType="map">
+        SELECT <include refid="logColumns"/>
+          FROM TX_IO_LOG
+         WHERE GUID = #{guid}
+         ORDER BY RECORD_TIME DESC
+         LIMIT 1
+    </select>
+
+    <sql id="logListWhere">
+        WHERE 1 = 1
+        <if test="guid != null and guid != ''">
+           AND GUID = #{guid}
+        </if>
+        <if test="traceId != null and traceId != ''">
+           AND TRACE_ID = #{traceId}
+        </if>
+        <if test="businessCode != null and businessCode != ''">
+           AND BUSINESS_CODE = #{businessCode}
+        </if>
+        <if test="serviceId != null and serviceId != ''">
+           AND SERVICE_ID = #{serviceId}
+        </if>
+        <if test="systemDate != null and systemDate != ''">
+           AND SYSTEM_DATE = #{systemDate}
+        </if>
+    </sql>
+
+    <select id="countLogList" parameterType="map" resultType="long">
+        SELECT COUNT(*)
+          FROM TX_IO_LOG
+        <include refid="logListWhere"/>
+    </select>
+
+    <select id="selectLogList" parameterType="map" resultType="map">
+        SELECT <include refid="logColumns"/>
+          FROM TX_IO_LOG
+        <include refid="logListWhere"/>
+         ORDER BY RECORD_TIME DESC
+        <if test="limit != null and offset != null">
+         OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+        </if>
+    </select>
+</mapper>

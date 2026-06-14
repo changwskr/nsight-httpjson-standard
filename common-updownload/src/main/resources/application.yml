@@ -1,0 +1,83 @@
+server:
+  port: 8097
+  forward-headers-strategy: framework
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    session:
+      timeout: 60m
+      tracking-modes: cookie
+      cookie:
+        name: JSESSIONID
+        path: /
+        http-only: true
+        secure: false
+        same-site: Lax
+
+spring:
+  application:
+    name: nsight-updownload-service
+  profiles:
+    active: local
+  datasource:
+    url: jdbc:h2:file:./data/updownload/ud-meta;MODE=Oracle;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  session:
+    store-type: jdbc
+    timeout: 60m
+    jdbc:
+      initialize-schema: never
+      table-name: SPRING_SESSION
+  transaction:
+    default-timeout: 10
+  jackson:
+    time-zone: Asia/Seoul
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 5
+    jdbc-type-for-null: NULL
+    call-setters-on-nulls: true
+    default-fetch-size: 500
+    cache-enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,threaddump
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+nsight:
+  module:
+    system-id: NSIGHT-MP
+    business-code: UD
+    ap-id: local-ud-ap01
+    session-validation-enabled: false
+    authorization-validation-enabled: false
+    idempotency-enabled: false
+  timeout:
+    online-transaction-seconds: 10
+    db-query-seconds: 5
+  updownload:
+    storage-path: ./data/updownload
+    max-file-size-mb: 50
