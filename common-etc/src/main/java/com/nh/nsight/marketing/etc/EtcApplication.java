@@ -1,6 +1,7 @@
 package com.nh.nsight.marketing.etc;
 
 import com.nh.nsight.marketing.common.boot.LocalBootRun;
+import com.nh.nsight.marketing.common.boot.NsightBootApplication;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,7 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "com.nh.nsight.marketing.etc"
 })
 @MapperScan("com.nh.nsight.marketing.etc.mapper")
-public class EtcApplication {
+public class EtcApplication extends NsightBootApplication {
+    @Override
+    protected Class<?> primarySource() {
+        return EtcApplication.class;
+    }
+
     public static void main(String[] args) {
         LocalBootRun.apply(8098, "ET", "nsight-etc-service");
         SpringApplication.run(EtcApplication.class, args);

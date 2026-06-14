@@ -8,4 +8,8 @@ out/
 logs/
 *.log
 **/data/
+ztomcat/apache-tomcat-*/
+ztomcat/_war_bak/
+ztomcat/*.zip
+META-INF/
 .DS_Store

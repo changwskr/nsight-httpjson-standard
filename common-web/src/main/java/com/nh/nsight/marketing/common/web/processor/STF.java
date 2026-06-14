@@ -38,8 +38,10 @@ public class STF {
         System.out.println("request: " + request);
         headerValidator.validateAndNormalize(request.getHeader(), pathBusinessCode == null ? null : pathBusinessCode.toUpperCase());
         applyStartHeader(request.getHeader());
-        TransactionContext context = new TransactionContext(request.getHeader(), Instant.now());
-        context.setRequestHeader(request.getHeader().copy());
+        TransactionContext context = new TransactionContext(
+                request.getHeader(),
+                request.getHeader().copy(),
+                Instant.now());
         context.setPathBusinessCode(pathBusinessCode);
         MDC.put("guid", context.getGuid());
         MDC.put("traceId", context.getTraceId());

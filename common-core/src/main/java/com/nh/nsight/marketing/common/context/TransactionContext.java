@@ -10,7 +10,12 @@ public class TransactionContext {
     private StandardHeader requestHeader;
 
     public TransactionContext(StandardHeader header, Instant startTime) {
+        this(header, null, startTime);
+    }
+
+    public TransactionContext(StandardHeader header, StandardHeader requestHeader, Instant startTime) {
         this.header = header;
+        this.requestHeader = requestHeader;
         this.startTime = startTime;
     }
 
