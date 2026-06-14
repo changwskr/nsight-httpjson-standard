@@ -1,0 +1,17 @@
+server:
+  port: 8099
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: nsight-demo-ui
+
+nsight:
+  demo:
+    deployment-mode: bootrun
+    tomcat-gateway-url: http://localhost:8080
+    bootrun-host: http://localhost

@@ -1,0 +1,32 @@
+stages:
+  - build
+  - test
+  - package
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dfile.encoding=UTF-8"
+
+build:
+  stage: build
+  tags:
+    - build
+  script:
+    - ./gradlew clean compileJava
+
+test:
+  stage: test
+  tags:
+    - build
+  script:
+    - ./gradlew test
+
+package:
+  stage: package
+  tags:
+    - build
+  script:
+    - ./gradlew bootWar
+  artifacts:
+    paths:
+      - "*/build/libs/*.war"
+    expire_in: 7 days

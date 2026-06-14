@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nh.nsight.marketing.cm.mapper.CmSampleMapper">
+    <select id="selectSample" parameterType="map" resultType="map">
+        SELECT 'CM' AS BUSINESS_CODE,
+               'Campaign' AS BUSINESS_NAME
+    </select>
+</mapper>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSIGHT 온라인 거래 테스트</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --panel-2: #243044;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --success: #34d399;
+      --fail: #f87171;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .field label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    select, input, textarea, button {
+      font: inherit;
+    }
+
+    select, input {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    select:focus, input:focus, textarea:focus, button:focus {
+      outline: 2px solid rgba(56, 189, 248, 0.45);
+      outline-offset: 1px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .meta-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .meta-card .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+
+    .meta-card .value {
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 420px;
+      background: #111827;
+      color: #dbeafe;
+      border: 0;
+      padding: 16px;
+      resize: vertical;
+      line-height: 1.5;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.88rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #0f172a;
+    }
+
+    .btn-secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .response-meta {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.88rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .badge.ok { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .badge.fail { background: rgba(248, 113, 113, 0.15); color: var(--fail); }
+
+    #responseBody {
+      min-height: 420px;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 16px;
+    }
+
+    .group-tag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(129, 140, 248, 0.18);
+      color: #c7d2fe;
+      font-size: 0.75rem;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>NSIGHT 온라인 거래 테스트 화면</h1>
+      <p>업무구분코드를 선택하고 표준 JSON 전문을 <code>POST /{업무코드}/online</code> 으로 전송합니다. 데모 UI는 relay API를 통해 대상 WAS로 요청을 중계합니다.</p>
+    </header>
+
+    <section class="toolbar">
+      <div class="field">
+        <label for="deploymentMode">배포 모드</label>
+        <select id="deploymentMode">
+          <option value="bootrun">bootRun (업무별 포트)</option>
+          <option value="tomcat">Tomcat (단일 Gateway)</option>
+        </select>
+      </div>
+      <div class="field" id="bootrunHostField">
+        <label for="bootrunHost">bootRun Host</label>
+        <input id="bootrunHost" type="text" value="http://localhost">
+      </div>
+      <div class="field" id="tomcatGatewayField" hidden>
+        <label for="tomcatGatewayUrl">Tomcat Gateway URL</label>
+        <input id="tomcatGatewayUrl" type="text" value="http://localhost:8080">
+      </div>
+      <div class="field">
+        <label for="businessCode">업무구분코드</label>
+        <select id="businessCode"></select>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" id="reloadSampleBtn" type="button">샘플 불러오기</button>
+        <button class="btn-primary" id="sendBtn" type="button">거래 요청</button>
+      </div>
+    </section>
+
+    <section class="meta">
+      <div class="meta-card">
+        <div class="label">업무명</div>
+        <div class="value" id="metaName">-</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">serviceId</div>
+        <div class="value" id="metaServiceId">-</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">transactionCode</div>
+        <div class="value" id="metaTransactionCode">-</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">요청 URL</div>
+        <div class="value" id="metaTargetUrl">-</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>요청 JSON</h2>
+        </div>
+        <textarea id="requestBody" spellcheck="false"></textarea>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>응답 JSON</h2>
+        </div>
+        <div class="response-meta" id="responseMeta">
+          <span class="empty">아직 요청하지 않았습니다.</span>
+        </div>
+        <textarea id="responseBody" readonly spellcheck="false"></textarea>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    let modules = [];
+    let config = {};
+
+    const businessCodeEl = document.getElementById('businessCode');
+    const deploymentModeEl = document.getElementById('deploymentMode');
+    const bootrunHostEl = document.getElementById('bootrunHost');
+    const tomcatGatewayUrlEl = document.getElementById('tomcatGatewayUrl');
+    const bootrunHostField = document.getElementById('bootrunHostField');
+    const tomcatGatewayField = document.getElementById('tomcatGatewayField');
+    const requestBodyEl = document.getElementById('requestBody');
+    const responseBodyEl = document.getElementById('responseBody');
+    const responseMetaEl = document.getElementById('responseMeta');
+
+    async function init() {
+      const [moduleRes, configRes] = await Promise.all([
+        fetch('/api/business-modules'),
+        fetch('/api/config')
+      ]);
+      modules = await moduleRes.json();
+      config = await configRes.json();
+      deploymentModeEl.value = config.deploymentMode || 'bootrun';
+      bootrunHostEl.value = config.bootrunHost || 'http://localhost';
+      tomcatGatewayUrlEl.value = config.tomcatGatewayUrl || 'http://localhost:8080';
+      renderBusinessOptions();
+      toggleDeploymentFields();
+      if (modules.length > 0) {
+        businessCodeEl.value = 'SV';
+        await selectModule('SV');
+      }
+    }
+
+    function renderBusinessOptions() {
+      businessCodeEl.innerHTML = modules.map(module => {
+        return `<option value="${module.code}">${module.code} - ${module.name}</option>`;
+      }).join('');
+    }
+
+    function toggleDeploymentFields() {
+      const tomcat = deploymentModeEl.value === 'tomcat';
+      bootrunHostField.hidden = tomcat;
+      tomcatGatewayField.hidden = !tomcat;
+    }
+
+    function currentModule() {
+      return modules.find(module => module.code === businessCodeEl.value);
+    }
+
+    async function selectModule(code) {
+      const module = modules.find(item => item.code === code);
+      if (!module) return;
+
+      document.getElementById('metaName').innerHTML =
+        `${module.name}<span class="group-tag">${module.group}</span>`;
+      document.getElementById('metaServiceId').textContent = module.serviceId;
+      document.getElementById('metaTransactionCode').textContent = module.transactionCode;
+      requestBodyEl.value = JSON.stringify(module.sampleRequest, null, 2);
+      await refreshTargetUrl();
+    }
+
+    async function refreshTargetUrl() {
+      const code = businessCodeEl.value;
+      const query = new URLSearchParams({
+        deploymentMode: deploymentModeEl.value,
+        bootrunHost: bootrunHostEl.value,
+        tomcatGatewayUrl: tomcatGatewayUrlEl.value
+      });
+      const targetRes = await fetch(`/api/business-modules/${code}/target-url?${query.toString()}`);
+      if (!targetRes.ok) {
+        document.getElementById('metaTargetUrl').textContent = 'URL 계산 실패';
+        return;
+      }
+      const target = await targetRes.json();
+      document.getElementById('metaTargetUrl').textContent = target.targetUrl;
+    }
+
+    function buildRelayQuery() {
+      return new URLSearchParams({
+        deploymentMode: deploymentModeEl.value,
+        bootrunHost: bootrunHostEl.value.trim(),
+        tomcatGatewayUrl: tomcatGatewayUrlEl.value.trim()
+      }).toString();
+    }
+
+    async function sendRequest() {
+      const code = businessCodeEl.value;
+      let payload;
+      try {
+        payload = JSON.parse(requestBodyEl.value);
+      } catch (error) {
+        alert('요청 JSON 형식이 올바르지 않습니다.');
+        return;
+      }
+
+      if (payload.header) {
+        payload.header.businessCode = code;
+        requestBodyEl.value = JSON.stringify(payload, null, 2);
+      }
+
+      responseMetaEl.innerHTML = '<span class="empty">요청 중...</span>';
+      responseBodyEl.value = '';
+
+      const response = await fetch(`/api/relay/${code}/online?${buildRelayQuery()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      const ok = result.httpStatus >= 200 && result.httpStatus < 300;
+      responseMetaEl.innerHTML = `
+        <span class="badge ${ok ? 'ok' : 'fail'}">HTTP ${result.httpStatus}</span>
+        <span>${result.elapsedMs} ms</span>
+        <span>${result.targetUrl}</span>
+      `;
+      try {
+        responseBodyEl.value = JSON.stringify(JSON.parse(result.responseBody), null, 2);
+      } catch (error) {
+        responseBodyEl.value = result.responseBody || '';
+      }
+    }
+
+    deploymentModeEl.addEventListener('change', () => {
+      toggleDeploymentFields();
+      refreshTargetUrl();
+    });
+    bootrunHostEl.addEventListener('change', refreshTargetUrl);
+    tomcatGatewayUrlEl.addEventListener('change', refreshTargetUrl);
+    businessCodeEl.addEventListener('change', () => selectModule(businessCodeEl.value));
+    document.getElementById('reloadSampleBtn').addEventListener('click', () => selectModule(businessCodeEl.value));
+    document.getElementById('sendBtn').addEventListener('click', sendRequest);
+
+    init().catch(error => {
+      alert('화면 초기화 실패: ' + error.message);
+    });
+  </script>
+</body>
+</html>

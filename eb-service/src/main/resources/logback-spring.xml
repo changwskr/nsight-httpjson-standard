@@ -1,0 +1,34 @@
+<configuration>
+    <property name="LOG_HOME" value="logs"/>
+    <property name="APP_NAME" value="${spring.application.name:-nsight-service}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] guid=%X{guid} trace=%X{traceId} user=%X{userId} branch=%X{branchId} svc=%X{serviceId} %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TRANSACTION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/transaction.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/transaction.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level guid=%X{guid} trace=%X{traceId} user=%X{userId} branch=%X{branchId} svc=%X{serviceId} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="TRANSACTION_LOG" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="TRANSACTION"/>
+    </logger>
+
+    <logger name="AUDIT_LOG" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

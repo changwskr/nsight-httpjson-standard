@@ -1,0 +1,35 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'nsight-httpjson-standard'
+include 'common-core'
+include 'common-web'
+include 'cc-service'
+include 'ic-service'
+include 'pc-service'
+include 'bc-service'
+include 'ms-service'
+include 'sv-service'
+include 'pd-service'
+include 'cm-service'
+include 'eb-service'
+include 'ep-service'
+include 'bp-service'
+include 'bd-service'
+include 'ss-service'
+include 'cs-service'
+include 'ct-service'
+include 'mg-service'
+include 'om-service'
+include 'demo-ui'
