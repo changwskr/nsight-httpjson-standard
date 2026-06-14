@@ -20,7 +20,13 @@ public class SvSampleInquiryHandler implements TransactionHandler {
     }
 
     @Override
-    public Object handle(TransactionContext context, Map<String, Object> body) {
-        return facade.inquiry(context, body);
+    public Object doHandle(TransactionContext context, Map<String, Object> body) {
+        System.out.println("====================================================================[SvSampleInquiryHandler.doHandle] start");
+        System.out.println("context: " + context);
+        System.out.println("body: " + body);
+        Object result = facade.inquiry(context, body);
+        System.out.println("result: " + result);
+        System.out.println("====================================================================[SvSampleInquiryHandler.doHandle] end");
+        return result;
     }
 }

@@ -18,6 +18,10 @@ public class SvSampleService {
     }
 
     public Map<String, Object> inquiry(TransactionContext context, Map<String, Object> body) {
+        System.out.println(
+                "□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□ [SvSampleService.inquiry] start");
+        System.out.println("context: " + context);
+        System.out.println("body: " + body);
         rule.validateInquiry(context, body);
         Map<String, Object> data = dao.selectSample(context, body);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -28,6 +32,9 @@ public class SvSampleService {
         result.put("serviceId", context.getServiceId());
         result.put("transactionCode", context.getTransactionCode());
         result.put("data", data);
+        System.out.println(
+                "□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□ [SvSampleService.inquiry] end");
+
         return result;
     }
 }

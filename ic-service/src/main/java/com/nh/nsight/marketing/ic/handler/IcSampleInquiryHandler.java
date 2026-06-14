@@ -20,7 +20,7 @@ public class IcSampleInquiryHandler implements TransactionHandler {
     }
 
     @Override
-    public Object handle(TransactionContext context, Map<String, Object> body) {
+    public Object doHandle(TransactionContext context, Map<String, Object> body) {
         return facade.inquiry(context, body);
     }
 }

@@ -16,7 +16,12 @@ public class StandardHeaderValidator {
     }
 
     public void validateAndNormalize(StandardHeader header, String pathBusinessCode) {
+        System.out.println("====================================================================[StandardHeaderValidator.validateAndNormalize] start");
+        System.out.println("header: " + header);
+        System.out.println("pathBusinessCode: " + pathBusinessCode);
         if (header == null) {
+            System.out.println("validationFailed: header is null");
+            System.out.println("====================================================================[StandardHeaderValidator.validateAndNormalize] end");
             throw new BusinessException("E-COM-HDR-0001", "표준 전문 header가 없습니다.");
         }
         if (isBlank(header.getSystemId())) {
@@ -51,6 +56,8 @@ public class StandardHeaderValidator {
         if (isBlank(header.getApId())) {
             header.setApId(properties.getApId());
         }
+        System.out.println("normalizedHeader: " + header);
+        System.out.println("====================================================================[StandardHeaderValidator.validateAndNormalize] end");
     }
 
     private void required(String value, String name, String code) {

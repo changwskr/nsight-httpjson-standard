@@ -11,6 +11,10 @@ public class MetricsPublisher {
     private static final Logger log = LoggerFactory.getLogger(MetricsPublisher.class);
 
     public void publish(TransactionContext context, Result result) {
+        System.out.println("====================================================================[MetricsPublisher.publish] start");
+        System.out.println("context: " + context);
+        System.out.println("result: " + result);
         log.debug("METRIC serviceId={} status={} elapsedMs={}", context.getServiceId(), result.getStatus(), result.getElapsedTimeMs());
+        System.out.println("====================================================================[MetricsPublisher.publish] end");
     }
 }

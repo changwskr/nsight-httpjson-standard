@@ -8,6 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @MapperScan("com.nh.nsight.marketing.sv.mapper")
 public class SvApplication {
     public static void main(String[] args) {
+        System.out.println("====================================================================[SvApplication.main] start");
+        System.out.println("args: " + java.util.Arrays.toString(args));
         SpringApplication.run(SvApplication.class, args);
+        System.out.println("====================================================================[SvApplication.main] end");
     }
 }

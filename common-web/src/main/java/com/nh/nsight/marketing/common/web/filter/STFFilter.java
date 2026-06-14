@@ -1,4 +1,4 @@
-package com.nh.nsight.marketing.common.web.stf;
+package com.nh.nsight.marketing.common.web.filter;
 
 import com.nh.nsight.marketing.common.util.GuidUtil;
 import jakarta.servlet.FilterChain;
@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class StfFilter extends OncePerRequestFilter {
+public class STFFilter extends OncePerRequestFilter {
     public static final String REQUEST_START_TIME = "NSIGHT_REQUEST_START_TIME";
     public static final String REQUEST_GUID = "NSIGHT_REQUEST_GUID";
     public static final String REQUEST_TRACE_ID = "NSIGHT_REQUEST_TRACE_ID";
@@ -22,9 +22,15 @@ public class StfFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        System.out.println(
+                "====================================================================[STFFilter.doFilterInternal] start");
+        System.out.println("uri: " + request.getRequestURI());
+        System.out.println("method: " + request.getMethod());
         long startTime = System.currentTimeMillis();
         String guid = headerOrNew(request, "X-GUID", GuidUtil.newGuid());
         String traceId = headerOrNew(request, "X-Trace-Id", GuidUtil.newTraceId());
+        System.out.println("guid: " + guid);
+        System.out.println("traceId: " + traceId);
 
         request.setAttribute(REQUEST_START_TIME, startTime);
         request.setAttribute(REQUEST_GUID, guid);
@@ -40,6 +46,10 @@ public class StfFilter extends OncePerRequestFilter {
             // MDC 정리는 ETF에서 수행한다. ETF 미등록 상황에 대비해 여기서도 방어적으로 제거한다.
             MDC.remove("guid");
             MDC.remove("traceId");
+            System.out.println("status: " + response.getStatus());
+            System.out.println("elapsedMs: " + (System.currentTimeMillis() - startTime));
+            System.out.println(
+                    "====================================================================[STFFilter.doFilterInternal] end");
         }
     }
 

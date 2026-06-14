@@ -13,14 +13,14 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PreProcessor {
+public class STF {
     private final StandardHeaderValidator headerValidator;
     private final SessionValidator sessionValidator;
     private final AuthorizationValidator authorizationValidator;
     private final IdempotencyChecker idempotencyChecker;
     private final TransactionLogService transactionLogService;
 
-    public PreProcessor(StandardHeaderValidator headerValidator, SessionValidator sessionValidator,
+    public STF(StandardHeaderValidator headerValidator, SessionValidator sessionValidator,
                         AuthorizationValidator authorizationValidator, IdempotencyChecker idempotencyChecker,
                         TransactionLogService transactionLogService) {
         this.headerValidator = headerValidator;
@@ -31,6 +31,9 @@ public class PreProcessor {
     }
 
     public TransactionContext preProcess(String pathBusinessCode, StandardRequest<Map<String, Object>> request) {
+        System.out.println("====================================================================[STF.preProcess] start");
+        System.out.println("pathBusinessCode: " + pathBusinessCode);
+        System.out.println("request: " + request);
         headerValidator.validateAndNormalize(request.getHeader(), pathBusinessCode == null ? null : pathBusinessCode.toUpperCase());
         TransactionContext context = new TransactionContext(request.getHeader(), Instant.now());
         context.setPathBusinessCode(pathBusinessCode);
@@ -43,6 +46,8 @@ public class PreProcessor {
         authorizationValidator.validate(context);
         idempotencyChecker.check(context);
         transactionLogService.start(context);
+        System.out.println("context: " + context);
+        System.out.println("====================================================================[STF.preProcess] end");
         return context;
     }
 }

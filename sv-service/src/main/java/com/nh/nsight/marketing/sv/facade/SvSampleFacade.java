@@ -16,6 +16,14 @@ public class SvSampleFacade {
 
     @Transactional(readOnly = true, timeout = 5)
     public Map<String, Object> inquiry(TransactionContext context, Map<String, Object> body) {
-        return service.inquiry(context, body);
+        System.out.println(
+                "□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□ [SvSampleFacade.inquiry] start");
+        System.out.println("context: " + context);
+        System.out.println("body: " + body);
+        Map<String, Object> result = service.inquiry(context, body);
+        System.out.println("result: " + result);
+        System.out.println(
+                "□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□□ [SvSampleFacade.inquiry] end");
+        return result;
     }
 }
