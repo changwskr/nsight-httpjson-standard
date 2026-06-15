@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 운영 대시보드</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    OmAdmin.initPage('dashboard', '운영 대시보드', async (el) => {
+      const baseDate = OmAdmin.todayIsoDate();
+      const { body } = await OmAdmin.inquiry('dashboard', { baseDate });
+
+      const statusClass = (body.overallStatus || 'NORMAL').toLowerCase();
+      const statusLabel = body.overallStatus === 'WARN' ? '주의' : body.overallStatus === 'CRITICAL' ? '장애' : '정상';
+      const summary = body.transactionSummary || {};
+
+      const apRows = (body.apStatus || []).map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'apName')}</td>
+          <td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+          <td>${OmAdmin.field(r, 'cpuUsagePct')}%</td>
+          <td>${OmAdmin.field(r, 'heapUsagePct')}%</td>
+          <td>${OmAdmin.field(r, 'threadCount')}</td>
+        </tr>`).join('') || '<tr><td colspan="5" class="om-empty">데이터 없음</td></tr>';
+
+      const dbRows = (body.dbStatus || []).map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'dbName')}</td>
+          <td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+          <td>${OmAdmin.field(r, 'poolUsagePct')}%</td>
+        </tr>`).join('') || '<tr><td colspan="3" class="om-empty">데이터 없음</td></tr>';
+
+      const errorRows = (body.errorTop || []).map(r => `
+        <tr>
+          <td class="om-mono">${OmAdmin.field(r, 'serviceId')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'errorCode')}</td>
+          <td>${OmAdmin.field(r, 'errorCount')}</td>
+        </tr>`).join('') || '<tr><td colspan="3" class="om-empty">당일 오류 없음</td></tr>';
+
+      const deployRows = (body.deployStatus || []).map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'businessCode')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'warName')}</td>
+          <td>${OmAdmin.field(r, 'warVersion')}</td>
+          <td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+          <td>${OmAdmin.field(r, 'deployedAt')}</td>
+        </tr>`).join('') || '<tr><td colspan="5" class="om-empty">데이터 없음</td></tr>';
+
+      el.innerHTML = `
+        <div class="om-alert info">기준일 <strong>${body.baseDate || baseDate}</strong> · 시스템 전체 상태를 한눈에 확인합니다.</div>
+        <section class="om-status-banner ${statusClass}">
+          <div class="om-status-main ${statusClass}">전체 상태: ${statusLabel}</div>
+          <span class="om-stat-pill">오류율 ${body.errorRatePct ?? 0}%</span>
+          <span class="om-stat-pill">Timeout ${body.timeoutCount ?? summary.timeoutCount ?? 0}건</span>
+          <span class="om-stat-pill">금일 거래 ${summary.totalCount ?? 0}건</span>
+          <span class="om-stat-pill">평균 응답 ${Math.round(summary.avgElapsedMs ?? body.avgElapsedMs ?? 0)}ms</span>
+          <span class="om-stat-pill">활성 세션 ${body.activeSessionCount ?? 0}</span>
+        </section>
+
+        <div class="om-grid-3">
+          <div class="om-card">
+            <div class="om-card-head">AP 상태</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>서버</th><th>상태</th><th>CPU</th><th>Heap</th><th>Thread</th></tr></thead><tbody>${apRows}</tbody></table>
+            </div>
+          </div>
+          <div class="om-card">
+            <div class="om-card-head">DB 상태</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>DB</th><th>상태</th><th>Pool</th></tr></thead><tbody>${dbRows}</tbody></table>
+            </div>
+          </div>
+          <div class="om-card">
+            <div class="om-card-head">세션 현황</div>
+            <div class="om-card-body">
+              <div class="om-kv-list">
+                <div class="om-kv-row"><span class="om-kv-label">활성 세션</span><strong>${body.activeSessionCount ?? 0}</strong></div>
+                <div class="om-kv-row"><span class="om-kv-label">오류 건수</span><strong>${summary.errorCount ?? 0}</strong></div>
+                <div class="om-kv-row"><span class="om-kv-label">Timeout</span><strong>${summary.timeoutCount ?? 0}</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="om-grid-2">
+          <div class="om-card">
+            <div class="om-card-head">최근 오류 Top 10</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>ServiceId</th><th>오류코드</th><th>건수</th></tr></thead><tbody>${errorRows}</tbody></table>
+            </div>
+          </div>
+          <div class="om-card">
+            <div class="om-card-head">배포 현황</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>업무</th><th>WAR</th><th>버전</th><th>상태</th><th>배포일시</th></tr></thead><tbody>${deployRows}</tbody></table>
+            </div>
+          </div>
+        </div>`;
+    }).catch(err => alert(err.message));
+  </script>
+</body>
+</html>

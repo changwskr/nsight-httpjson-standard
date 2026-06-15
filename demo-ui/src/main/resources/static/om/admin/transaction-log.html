@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 거래로그 조회</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    const PAGE_SIZE = 20;
+    let currentPage = 1;
+
+    function readFilters() {
+      const v = id => document.getElementById(id).value.trim();
+      const f = {};
+      ['filterGuid', 'filterTraceId', 'filterServiceId', 'filterTransactionCode',
+        'filterUserId', 'filterBranchId', 'filterResultStatus', 'filterErrorCode',
+        'filterFromDate', 'filterToDate'].forEach(id => {
+        const key = id.replace('filter', '').replace(/^[A-Z]/, c => c.toLowerCase());
+        const camel = id === 'filterGuid' ? 'guid'
+          : id === 'filterTraceId' ? 'traceId'
+          : id === 'filterServiceId' ? 'serviceId'
+          : id === 'filterTransactionCode' ? 'transactionCode'
+          : id === 'filterUserId' ? 'userId'
+          : id === 'filterBranchId' ? 'branchId'
+          : id === 'filterResultStatus' ? 'resultStatus'
+          : id === 'filterErrorCode' ? 'errorCode'
+          : id === 'filterFromDate' ? 'fromDate'
+          : 'toDate';
+        const val = v(id);
+        if (val) f[camel] = val;
+      });
+      return f;
+    }
+
+    async function loadList(page, el) {
+      currentPage = page;
+      const tbody = document.getElementById('txTableBody');
+      const statusEl = document.getElementById('listStatus');
+      tbody.innerHTML = '<tr><td colspan="9" class="om-empty">조회 중...</td></tr>';
+      statusEl.textContent = '조회 중...';
+
+      const { body, relay } = await OmAdmin.inquiry('transactionLog', {
+        ...readFilters(),
+        pageNo: page,
+        pageSize: PAGE_SIZE
+      });
+
+      const rows = body.rows || [];
+      statusEl.textContent = `${relay.elapsedMs}ms · 총 ${body.totalCount ?? 0}건`;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="om-empty">조건에 맞는 거래로그가 없습니다.</td></tr>';
+      } else {
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td>${OmAdmin.field(r, 'txTime')}</td>
+            <td>${OmAdmin.field(r, 'businessCode')}</td>
+            <td class="om-mono">${OmAdmin.field(r, 'serviceId')}</td>
+            <td class="om-mono">${OmAdmin.field(r, 'guid')}</td>
+            <td>${OmAdmin.field(r, 'userId')}</td>
+            <td>${OmAdmin.field(r, 'branchId')}</td>
+            <td>${OmAdmin.chipForResult(OmAdmin.field(r, 'resultStatus'))}</td>
+            <td>${OmAdmin.field(r, 'elapsedTimeMs')}ms</td>
+            <td class="om-mono">${OmAdmin.field(r, 'errorCode')}</td>
+          </tr>`).join('');
+      }
+
+      OmAdmin.renderPagination(
+        document.getElementById('pagination'),
+        body.pageNo || page,
+        body.pageSize || PAGE_SIZE,
+        body.totalCount || 0,
+        p => loadList(p, el).catch(e => OmAdmin.showError(el, e.message))
+      );
+    }
+
+    OmAdmin.initPage('transaction-log', '거래로그 조회', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">GUID · TraceId · ServiceId 기준으로 장애를 추적합니다. 행 클릭 없이 목록 조회 전용입니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterGuid">GUID</label><input id="filterGuid" type="text" placeholder="전체"></div>
+          <div class="field"><label for="filterTraceId">TraceId</label><input id="filterTraceId" type="text"></div>
+          <div class="field"><label for="filterServiceId">ServiceId</label><input id="filterServiceId" type="text"></div>
+          <div class="field"><label for="filterTransactionCode">거래코드</label><input id="filterTransactionCode" type="text"></div>
+          <div class="field"><label for="filterUserId">UserId</label><input id="filterUserId" type="text"></div>
+          <div class="field"><label for="filterBranchId">지점</label><input id="filterBranchId" type="text"></div>
+          <div class="field"><label for="filterResultStatus">결과</label>
+            <select id="filterResultStatus"><option value="">전체</option><option value="SUCCESS">SUCCESS</option><option value="FAIL">FAIL</option></select>
+          </div>
+          <div class="field"><label for="filterErrorCode">오류코드</label><input id="filterErrorCode" type="text"></div>
+          <div class="field"><label for="filterFromDate">시작일시</label><input id="filterFromDate" type="text" placeholder="2026-06-14T00:00:00+09:00"></div>
+          <div class="field"><label for="filterToDate">종료일시</label><input id="filterToDate" type="text"></div>
+          <div class="actions" style="display:flex;gap:8px;align-items:end">
+            <button class="btn-primary" id="searchBtn" type="button">조회</button>
+            <button class="btn-secondary" id="resetBtn" type="button">초기화</button>
+          </div>
+        </section>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:0.85rem" id="listStatus">-</div>
+        <div class="om-card">
+          <div class="om-card-head">거래로그 목록</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead><tr>
+                <th>일시</th><th>업무</th><th>ServiceId</th><th>GUID</th>
+                <th>사용자</th><th>지점</th><th>결과</th><th>처리시간</th><th>오류</th>
+              </tr></thead>
+              <tbody id="txTableBody"><tr><td colspan="9" class="om-empty">조회 버튼을 누르세요.</td></tr></tbody>
+            </table>
+            <div class="om-pagination" id="pagination" hidden></div>
+          </div>
+        </div>`;
+
+      document.getElementById('searchBtn').addEventListener('click', () =>
+        loadList(1, el).catch(e => OmAdmin.showErrorBanner(el, e.message)));
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        el.querySelectorAll('.om-filter-bar input').forEach(i => { i.value = ''; });
+        document.getElementById('filterResultStatus').value = '';
+      });
+
+      await loadList(1, el).catch(e => OmAdmin.showErrorBanner(el, e.message));
+    }).catch(err => alert(err.message));
+  </script>
+</body>
+</html>

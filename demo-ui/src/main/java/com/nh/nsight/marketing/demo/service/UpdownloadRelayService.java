@@ -4,6 +4,9 @@ import com.nh.nsight.marketing.demo.config.DemoUiProperties;
 import com.nh.nsight.marketing.demo.model.BusinessModuleInfo;
 import com.nh.nsight.marketing.demo.service.TransactionRelayService.RelayOptions;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +18,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class UpdownloadRelayService {
@@ -48,18 +52,7 @@ public class UpdownloadRelayService {
         if (StringUtils.hasText(description)) {
             body.add("description", description);
         }
-        try {
-            return restClient.post()
-                    .uri(URI.create(targetUrl))
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(body)
-                    .retrieve()
-                    .body(String.class);
-        } catch (RestClientResponseException e) {
-            return e.getResponseBodyAsString();
-        } catch (Exception e) {
-            return connectionErrorJson(targetUrl, e);
-        }
+        return exchangePostMultipart(targetUrl, body);
     }
 
     public ResponseEntity<ByteArrayResource> relayDownload(String fileId, RelayOptions options) {
@@ -84,10 +77,48 @@ public class UpdownloadRelayService {
         }
     }
 
-    public String relayList(RelayOptions options) {
-        String targetUrl = resolveBaseUrl(options) + "/ud/files?businessCode=UD";
+    public String relayList(RelayOptions options, Map<String, String> query) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUriString(resolveBaseUrl(options) + "/ud/files")
+                .queryParam("businessCode", "UD");
+        if (query != null) {
+            query.forEach((key, value) -> {
+                if (StringUtils.hasText(value)) {
+                    builder.queryParam(key, value);
+                }
+            });
+        }
+        URI uri = builder.build().encode(StandardCharsets.UTF_8).toUri();
+        return exchangeGet(uri);
+    }
+
+    public String relayDetail(String fileId, RelayOptions options) {
+        String targetUrl = resolveBaseUrl(options) + "/ud/files/" + fileId;
+        return exchangeGet(targetUrl);
+    }
+
+    public String relayUpdate(String fileId, String description, RelayOptions options) {
+        String targetUrl = resolveBaseUrl(options) + "/ud/files/" + fileId;
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("description", description == null ? "" : description);
         try {
-            return restClient.get()
+            return restClient.put()
+                    .uri(URI.create(targetUrl))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+        } catch (RestClientResponseException e) {
+            return e.getResponseBodyAsString();
+        } catch (Exception e) {
+            return connectionErrorJson(targetUrl, e);
+        }
+    }
+
+    public String relayDelete(String fileId, RelayOptions options) {
+        String targetUrl = resolveBaseUrl(options) + "/ud/files/" + fileId;
+        try {
+            return restClient.delete()
                     .uri(URI.create(targetUrl))
                     .retrieve()
                     .body(String.class);
@@ -96,6 +127,38 @@ public class UpdownloadRelayService {
         } catch (Exception e) {
             return connectionErrorJson(targetUrl, e);
         }
+    }
+
+    private String exchangePostMultipart(String targetUrl, MultiValueMap<String, Object> body) {
+        try {
+            return restClient.post()
+                    .uri(URI.create(targetUrl))
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+        } catch (RestClientResponseException e) {
+            return e.getResponseBodyAsString();
+        } catch (Exception e) {
+            return connectionErrorJson(targetUrl, e);
+        }
+    }
+
+    private String exchangeGet(URI uri) {
+        try {
+            return restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(String.class);
+        } catch (RestClientResponseException e) {
+            return e.getResponseBodyAsString();
+        } catch (Exception e) {
+            return connectionErrorJson(uri.toString(), e);
+        }
+    }
+
+    private String exchangeGet(String targetUrl) {
+        return exchangeGet(URI.create(targetUrl));
     }
 
     private String connectionErrorJson(String targetUrl, Exception e) {

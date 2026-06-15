@@ -27,8 +27,11 @@
         const transactionLogLink = code === 'ET'
           ? `<a href="/${lower}/transaction-log.html">트랜잭션 로그 조회</a>`
           : '';
+        const omAdminLink = code === 'OM'
+          ? `<a href="/${lower}/admin/dashboard.html">운영관리 포털</a>`
+          : '';
         const updownloadLink = code === 'UD'
-          ? `<a href="/${lower}/updownload.html">파일 업·다운로드</a>`
+          ? `<a href="/${lower}/updownload.html">파일 관리</a>`
           : '';
         return `
           <article class="hub-card">
@@ -38,6 +41,7 @@
               <a href="/${lower}/index.html">단일 서비스 테스트</a>
               <a href="/${lower}/index-multi.html">다중 서비스 테스트</a>
               ${transactionLogLink}
+              ${omAdminLink}
               ${updownloadLink}
             </div>
           </article>

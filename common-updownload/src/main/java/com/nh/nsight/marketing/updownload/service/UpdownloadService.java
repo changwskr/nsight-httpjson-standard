@@ -4,6 +4,7 @@ import com.nh.nsight.marketing.common.context.TransactionContext;
 import com.nh.nsight.marketing.updownload.dao.UpdownloadDao;
 import com.nh.nsight.marketing.updownload.rule.UpdownloadRule;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,16 +51,35 @@ public class UpdownloadService {
 
     public Map<String, Object> list(TransactionContext context, Map<String, Object> body) {
         rule.validateList(context);
-        List<Map<String, Object>> files = dao.selectFileList(context.getBusinessCode());
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("businessCode", "UD");
-        result.put("businessName", "Common UpDownload");
-        result.put("businessGroup", "공통");
-        result.put("description", "공통 파일 업로드/다운로드");
-        result.put("serviceId", context.getServiceId());
-        result.put("transactionCode", context.getTransactionCode());
-        result.put("totalCount", files.size());
-        result.put("files", files);
+        Map<String, Object> criteria = new HashMap<>(body == null ? Map.of() : body);
+        rule.normalizeSearchCriteria(criteria);
+        List<Map<String, Object>> files = dao.searchFiles(criteria);
+        int totalCount = dao.countFiles(criteria);
+        return buildListResult(context, criteria, files, totalCount);
+    }
+
+    public Map<String, Object> detail(TransactionContext context, Map<String, Object> body) {
+        rule.validateDetail(context, body);
+        String fileId = stringValue(body.get("fileId"));
+        Map<String, Object> fileMeta = dao.selectFileById(fileId);
+        return buildResult(context, "detail", fileMeta);
+    }
+
+    public Map<String, Object> update(TransactionContext context, Map<String, Object> body) {
+        rule.validateUpdate(context, body);
+        String fileId = stringValue(body.get("fileId"));
+        String description = stringValue(body.get("description"));
+        Map<String, Object> updated = dao.updateDescription(fileId, description);
+        return buildResult(context, "update", updated);
+    }
+
+    public Map<String, Object> delete(TransactionContext context, Map<String, Object> body) {
+        rule.validateDelete(context, body);
+        String fileId = stringValue(body.get("fileId"));
+        Map<String, Object> fileMeta = dao.selectFileById(fileId);
+        dao.deleteFile(fileId);
+        Map<String, Object> result = buildResult(context, "delete", fileMeta);
+        result.put("deleted", true);
         return result;
     }
 
@@ -83,8 +103,54 @@ public class UpdownloadService {
         return dao.readFileContent(fileMeta);
     }
 
-    public List<Map<String, Object>> listFiles(String businessCode) {
-        return dao.selectFileList(businessCode);
+    public Map<String, Object> listFiles(Map<String, Object> criteria) {
+        Map<String, Object> search = new HashMap<>(criteria == null ? Map.of() : criteria);
+        rule.normalizeSearchCriteria(search);
+        List<Map<String, Object>> files = dao.searchFiles(search);
+        int totalCount = dao.countFiles(search);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("businessCode", search.get("businessCode"));
+        body.put("pageNo", search.get("pageNo"));
+        body.put("pageSize", search.get("pageSize"));
+        body.put("totalCount", totalCount);
+        body.put("files", files);
+        return body;
+    }
+
+    public Map<String, Object> updateFileMeta(String fileId, String description) {
+        rule.validateFileId(fileId);
+        Map<String, Object> updated = dao.updateDescription(fileId, description);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("action", "update");
+        body.put("file", updated);
+        return body;
+    }
+
+    public Map<String, Object> deleteFileMeta(String fileId) {
+        rule.validateFileId(fileId);
+        Map<String, Object> fileMeta = dao.selectFileById(fileId);
+        dao.deleteFile(fileId);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("action", "delete");
+        body.put("deleted", true);
+        body.put("file", fileMeta);
+        return body;
+    }
+
+    private Map<String, Object> buildListResult(TransactionContext context, Map<String, Object> criteria,
+                                                List<Map<String, Object>> files, int totalCount) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("businessCode", "UD");
+        result.put("businessName", "Common UpDownload");
+        result.put("businessGroup", "공통");
+        result.put("description", "공통 파일 업로드/다운로드/관리");
+        result.put("serviceId", context.getServiceId());
+        result.put("transactionCode", context.getTransactionCode());
+        result.put("pageNo", criteria.get("pageNo"));
+        result.put("pageSize", criteria.get("pageSize"));
+        result.put("totalCount", totalCount);
+        result.put("files", files);
+        return result;
     }
 
     private Map<String, Object> buildResult(TransactionContext context, String action, Map<String, Object> fileMeta) {
@@ -92,7 +158,7 @@ public class UpdownloadService {
         result.put("businessCode", "UD");
         result.put("businessName", "Common UpDownload");
         result.put("businessGroup", "공통");
-        result.put("description", "공통 파일 업로드/다운로드");
+        result.put("description", "공통 파일 업로드/다운로드/관리");
         result.put("serviceId", context.getServiceId());
         result.put("transactionCode", context.getTransactionCode());
         result.put("action", action);

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 사용자 / 권한 / 메뉴</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    let activeTab = 'users';
+
+    async function loadUsers() {
+      const tbody = document.getElementById('tabBody');
+      tbody.innerHTML = '<tr><td colspan="6" class="om-empty">조회 중...</td></tr>';
+      const { body } = await OmAdmin.inquiry('user', {});
+      const rows = body.rows || body.users || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="om-empty">사용자 없음</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'userId')}</td>
+          <td>${OmAdmin.field(r, 'userName')}</td>
+          <td>${OmAdmin.field(r, 'branchId')}</td>
+          <td>${OmAdmin.field(r, 'authGroupName')}</td>
+          <td>${OmAdmin.field(r, 'useYn') === 'Y' ? '<span class="om-chip ok">Y</span>' : '<span class="om-chip muted">N</span>'}</td>
+          <td>${OmAdmin.field(r, 'lastLoginTime')}</td>
+        </tr>`).join('');
+    }
+
+    async function loadAuthGroups() {
+      const tbody = document.getElementById('tabBody');
+      tbody.innerHTML = '<tr><td colspan="4" class="om-empty">조회 중...</td></tr>';
+      const { body } = await OmAdmin.inquiry('authGroup', {});
+      const rows = body.rows || body.authGroups || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="om-empty">권한그룹 없음</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td class="om-mono">${OmAdmin.field(r, 'authGroupId')}</td>
+          <td>${OmAdmin.field(r, 'authGroupName')}</td>
+          <td>${OmAdmin.field(r, 'description')}</td>
+          <td>${OmAdmin.field(r, 'useYn') === 'Y' ? '<span class="om-chip ok">Y</span>' : '<span class="om-chip muted">N</span>'}</td>
+        </tr>`).join('');
+    }
+
+    async function loadMenus() {
+      const tbody = document.getElementById('tabBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="om-empty">조회 중...</td></tr>';
+      const { body } = await OmAdmin.inquiry('menu', { useYn: 'Y' });
+      const rows = body.rows || body.menus || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="om-empty">메뉴 없음</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'menuId')}</td>
+          <td>${OmAdmin.field(r, 'menuName')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'menuUrl')}</td>
+          <td>${OmAdmin.field(r, 'parentMenuId', '-')}</td>
+          <td>${OmAdmin.field(r, 'sortOrder')}</td>
+        </tr>`).join('');
+    }
+
+    function setTab(tab, el) {
+      activeTab = tab;
+      document.querySelectorAll('.om-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+      const head = document.getElementById('tableHead');
+      if (tab === 'users') {
+        head.innerHTML = '<tr><th>사용자ID</th><th>이름</th><th>지점</th><th>권한그룹</th><th>사용</th><th>최종로그인</th></tr>';
+        loadUsers().catch(e => OmAdmin.showError(el, e.message));
+      } else if (tab === 'auth') {
+        head.innerHTML = '<tr><th>그룹ID</th><th>그룹명</th><th>설명</th><th>사용</th></tr>';
+        loadAuthGroups().catch(e => OmAdmin.showError(el, e.message));
+      } else {
+        head.innerHTML = '<tr><th>메뉴ID</th><th>메뉴명</th><th>URL</th><th>상위메뉴</th><th>정렬</th></tr>';
+        loadMenus().catch(e => OmAdmin.showError(el, e.message));
+      }
+    }
+
+    OmAdmin.initPage('user-auth', '사용자 / 권한 / 메뉴 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">관리자 기능의 기본 화면입니다. 기능권한·데이터권한·권한이력은 2차 범위입니다.</div>
+        <div class="om-tabs">
+          <button type="button" class="om-tab active" data-tab="users">사용자 관리</button>
+          <button type="button" class="om-tab" data-tab="auth">권한그룹</button>
+          <button type="button" class="om-tab" data-tab="menu">메뉴 관리</button>
+        </div>
+        <div class="om-card">
+          <div class="om-card-head" id="tabTitle">사용자 목록</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead id="tableHead"></thead>
+              <tbody id="tabBody"></tbody>
+            </table>
+          </div>
+        </div>`;
+
+      el.querySelectorAll('.om-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          document.getElementById('tabTitle').textContent =
+            tab === 'users' ? '사용자 목록' : tab === 'auth' ? '권한그룹 목록' : '메뉴 목록';
+          setTab(tab, el);
+        });
+      });
+
+      setTab('users', el);
+    }).catch(err => alert(err.message));
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM Health Check</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    OmAdmin.initPage('health-check', 'Health Check / 배포 조회', async (el) => {
+      const { body } = await OmAdmin.inquiry('healthCheck', {});
+      const statusClass = (body.overallStatus || 'NORMAL').toLowerCase();
+      const statusLabel = body.overallStatus === 'CRITICAL' ? '장애' : body.overallStatus === 'WARN' ? '주의' : '정상';
+
+      const apRows = (body.apStatus || []).map(r => `
+        <tr><td>${OmAdmin.field(r, 'apName')}</td><td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+        <td>${OmAdmin.field(r, 'cpuUsagePct')}%</td><td>${OmAdmin.field(r, 'heapUsagePct')}%</td>
+        <td>${OmAdmin.field(r, 'threadCount')}</td><td>${OmAdmin.field(r, 'checkedAt')}</td></tr>`).join('');
+
+      const dbRows = (body.dbStatus || []).map(r => `
+        <tr><td>${OmAdmin.field(r, 'dbName')}</td><td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+        <td>${OmAdmin.field(r, 'poolUsagePct')}%</td><td>${OmAdmin.field(r, 'checkedAt')}</td></tr>`).join('');
+
+      const depRows = (body.deployStatus || []).map(r => `
+        <tr><td>${OmAdmin.field(r, 'businessCode')}</td><td class="om-mono">${OmAdmin.field(r, 'warName')}</td>
+        <td>${OmAdmin.field(r, 'warVersion')}</td><td>${OmAdmin.chipForHealth(OmAdmin.field(r, 'healthStatus'))}</td>
+        <td>${OmAdmin.field(r, 'deployedAt')}</td></tr>`).join('');
+
+      el.innerHTML = `
+        <div class="om-alert info">WAR 버전·배포상태·서버 Health를 조회합니다. 기준 시각: ${body.checkedAt || '-'}</div>
+        <section class="om-status-banner ${statusClass}">
+          <div class="om-status-main ${statusClass}">전체: ${statusLabel}</div>
+          <span class="om-stat-pill">활성 세션 ${body.activeSessionCount ?? 0}</span>
+        </section>
+        <div class="om-card" style="margin-bottom:16px">
+          <div class="om-card-head">AP Health</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table"><thead><tr><th>서버</th><th>상태</th><th>CPU</th><th>Heap</th><th>Thread</th><th>점검시각</th></tr></thead><tbody>${apRows}</tbody></table>
+          </div>
+        </div>
+        <div class="om-grid-2">
+          <div class="om-card">
+            <div class="om-card-head">DB Health</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>DB</th><th>상태</th><th>Pool</th><th>점검시각</th></tr></thead><tbody>${dbRows}</tbody></table>
+            </div>
+          </div>
+          <div class="om-card">
+            <div class="om-card-head">WAR 배포 현황</div>
+            <div class="om-card-body om-table-wrap">
+              <table class="om-table"><thead><tr><th>업무</th><th>WAR</th><th>버전</th><th>상태</th><th>배포일시</th></tr></thead><tbody>${depRows}</tbody></table>
+            </div>
+          </div>
+        </div>`;
+    });
+  </script>
+</body>
+</html>

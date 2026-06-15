@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM Cache 관리</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    async function load(el) {
+      const cacheName = document.getElementById('filterName').value.trim();
+      const body = cacheName ? { cacheName } : {};
+      const { body: data } = await OmAdmin.inquiry('cache', body);
+      const rows = data.rows || [];
+      const tbody = document.getElementById('cacheBody');
+      tbody.innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td class="om-mono">${OmAdmin.field(r,'cacheName')}</td>
+          <td class="om-mono">${OmAdmin.field(r,'cacheKey')}</td>
+          <td>${OmAdmin.field(r,'entryCount')}</td>
+          <td>${OmAdmin.field(r,'ttlSec')}초</td>
+          <td>${OmAdmin.field(r,'lastUpdated')}</td>
+          <td><button type="button" class="btn-secondary btn-del" data-name="${OmAdmin.field(r,'cacheName')}" data-key="${OmAdmin.field(r,'cacheKey')}">삭제</button></td>
+        </tr>`).join('') : '<tr><td colspan="6" class="om-empty">Cache 없음</td></tr>';
+      tbody.querySelectorAll('.btn-del').forEach(btn => btn.addEventListener('click', async () => {
+        const reason = prompt('삭제 사유 (5자 이상):');
+        if (!reason || reason.length < 5) return;
+        try {
+          await OmAdmin.mutate('cacheDelete', {
+            cacheName: btn.dataset.name,
+            cacheKey: btn.dataset.key,
+            deleteReason: reason
+          }, 'DELETE');
+          alert('삭제 완료');
+          await load(el);
+        } catch (e) { alert(e.message); }
+      }));
+    }
+
+    OmAdmin.initPage('cache', 'Cache 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">관리자 권한 + 감사로그 필수. Cache 삭제는 되돌릴 수 없습니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterName">Cache명</label><input id="filterName" type="text"></div>
+          <button class="btn-primary" id="searchBtn" type="button">조회</button>
+        </section>
+        <div class="om-card"><div class="om-card-head">Cache 현황</div><div class="om-card-body om-table-wrap">
+          <table class="om-table"><thead><tr><th>Cache</th><th>Key</th><th>건수</th><th>TTL</th><th>갱신</th><th></th></tr></thead>
+          <tbody id="cacheBody"></tbody></table>
+        </div></div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(el).catch(e => OmAdmin.showError(el, e.message)));
+      await load(el);
+    });
+  </script>
+</body>
+</html>

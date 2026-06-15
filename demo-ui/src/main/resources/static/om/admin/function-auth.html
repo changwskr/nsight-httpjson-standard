@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 기능권한</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    function yn(v) { return v === 'Y' ? '<span class="om-chip ok">Y</span>' : '<span class="om-chip muted">N</span>'; }
+
+    async function load(el) {
+      const authGroupId = document.getElementById('filterGroup').value;
+      const body = authGroupId ? { authGroupId } : {};
+      const { body: data } = await OmAdmin.inquiry('functionAuth', body);
+      const rows = data.rows || [];
+      document.getElementById('faBody').innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r,'authGroupName')}</td><td class="om-mono">${OmAdmin.field(r,'menuId')}</td>
+          <td>${OmAdmin.field(r,'menuName')}</td>
+          <td>${yn(OmAdmin.field(r,'canInquiry'))}</td><td>${yn(OmAdmin.field(r,'canRegister'))}</td>
+          <td>${yn(OmAdmin.field(r,'canUpdate'))}</td><td>${yn(OmAdmin.field(r,'canDelete'))}</td>
+          <td>${yn(OmAdmin.field(r,'canDownload'))}</td>
+        </tr>`).join('') : '<tr><td colspan="8" class="om-empty">없음</td></tr>';
+    }
+
+    OmAdmin.initPage('function-auth', '기능권한 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">메뉴별 조회·등록·수정·삭제·다운로드 권한을 확인합니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterGroup">권한그룹</label>
+            <select id="filterGroup"><option value="">전체</option><option>ROLE_ADMIN</option><option>ROLE_OPERATOR</option><option>ROLE_VIEWER</option></select>
+          </div>
+          <button class="btn-primary" id="searchBtn" type="button">조회</button>
+        </section>
+        <div class="om-card"><div class="om-card-head">기능권한 매트릭스</div><div class="om-card-body om-table-wrap">
+          <table class="om-table"><thead><tr><th>권한그룹</th><th>메뉴ID</th><th>메뉴명</th><th>조회</th><th>등록</th><th>수정</th><th>삭제</th><th>다운로드</th></tr></thead>
+          <tbody id="faBody"></tbody></table>
+        </div></div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(el).catch(e => OmAdmin.showError(el, e.message)));
+      await load(el);
+    });
+  </script>
+</body>
+</html>

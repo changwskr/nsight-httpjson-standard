@@ -59,5 +59,68 @@
         "fileId": "REPLACE_WITH_FILE_ID"
       }
     }
+  },
+  {
+    "label": "File Detail",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "UD",
+        "serviceId": "UD.File.detail",
+        "transactionCode": "UD-DTL-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "U123456",
+        "branchId": "001234",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "fileId": "REPLACE_WITH_FILE_ID" }
+    }
+  },
+  {
+    "label": "File Update",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "UD",
+        "serviceId": "UD.File.update",
+        "transactionCode": "UD-UPD-0001",
+        "processingType": "UPDATE",
+        "channelId": "WEBTOP",
+        "userId": "U123456",
+        "branchId": "001234",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "fileId": "REPLACE_WITH_FILE_ID", "description": "수정된 설명" }
+    }
+  },
+  {
+    "label": "File Delete",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "UD",
+        "serviceId": "UD.File.delete",
+        "transactionCode": "UD-DEL-0001",
+        "processingType": "DELETE",
+        "channelId": "WEBTOP",
+        "userId": "U123456",
+        "branchId": "001234",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "fileId": "REPLACE_WITH_FILE_ID" }
+    }
   }
 ]

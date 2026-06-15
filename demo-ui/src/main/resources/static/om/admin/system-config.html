@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 환경설정 조회</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    async function load(el) {
+      const category = document.getElementById('filterCategory').value;
+      const body = category ? { configCategory: category } : {};
+      const tbody = document.getElementById('cfgBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="om-empty">조회 중...</td></tr>';
+
+      const { body: data, relay } = await OmAdmin.inquiry('systemConfig', body);
+      document.getElementById('listStatus').textContent = `${relay.elapsedMs}ms · ${data.totalCount ?? 0}건`;
+
+      const rows = data.rows || [];
+      tbody.innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'configCategory')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'configKey')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'configValue')}</td>
+          <td>${OmAdmin.field(r, 'editableYn') === 'Y' ? '<span class="om-chip warn">수정가능</span>' : '<span class="om-chip muted">조회전용</span>'}</td>
+          <td>${OmAdmin.field(r, 'description')}</td>
+        </tr>`).join('') : '<tr><td colspan="5" class="om-empty">설정 없음</td></tr>';
+    }
+
+    OmAdmin.initPage('system-config', '환경설정 조회', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">application.yml · Hikari · MyBatis · Tomcat 설정은 <strong>조회만</strong> 제공합니다. 직접 수정은 Git 변경 이력으로 관리합니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterCategory">카테고리</label>
+            <select id="filterCategory">
+              <option value="">전체</option>
+              <option value="application">application</option>
+              <option value="hikari">hikari</option>
+              <option value="mybatis">mybatis</option>
+              <option value="tomcat">tomcat</option>
+            </select>
+          </div>
+          <div class="actions" style="display:flex;gap:8px;align-items:end">
+            <button class="btn-primary" id="searchBtn" type="button">조회</button>
+          </div>
+        </section>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:0.85rem" id="listStatus">-</div>
+        <div class="om-card">
+          <div class="om-card-head">환경설정 목록</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead><tr><th>카테고리</th><th>키</th><th>값</th><th>편집</th><th>설명</th></tr></thead>
+              <tbody id="cfgBody"></tbody>
+            </table>
+          </div>
+        </div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(el).catch(e => OmAdmin.showError(el, e.message)));
+      await load(el);
+    });
+  </script>
+</body>
+</html>

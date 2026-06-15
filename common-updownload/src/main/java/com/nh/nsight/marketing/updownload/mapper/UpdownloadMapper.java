@@ -11,4 +11,12 @@ public interface UpdownloadMapper {
     Map<String, Object> selectFileById(Map<String, Object> parameter);
 
     List<Map<String, Object>> selectFileList(Map<String, Object> parameter);
+
+    List<Map<String, Object>> searchFileList(Map<String, Object> parameter);
+
+    int countFileList(Map<String, Object> parameter);
+
+    int updateFileDescription(Map<String, Object> parameter);
+
+    int deleteFile(Map<String, Object> parameter);
 }

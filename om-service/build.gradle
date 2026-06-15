@@ -31,3 +31,13 @@ bootWar {
 war {
     archiveFileName = 'om.war'
 }
+
+// VS Code/Cursor IDE 실행(bin/main) 시 MyBatis XML·application.yml 등 리소스가 누락되지 않도록 동기화
+tasks.register('syncIdeResources', Copy) {
+    from sourceSets.main.resources
+    into layout.projectDirectory.dir('bin/main')
+}
+
+tasks.named('classes') {
+    finalizedBy tasks.named('syncIdeResources')
+}

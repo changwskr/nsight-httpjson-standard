@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 다운로드 이력</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    const PAGE_SIZE = 20;
+
+    function formatSize(bytes) {
+      const n = Number(bytes);
+      if (!n) return '-';
+      if (n < 1024) return n + ' B';
+      if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+      return (n / 1048576).toFixed(1) + ' MB';
+    }
+
+    async function load(page, el) {
+      const userId = document.getElementById('filterUserId').value.trim();
+      const businessCode = document.getElementById('filterBusinessCode').value.trim();
+      const fileName = document.getElementById('filterFileName').value.trim();
+      const resultStatus = document.getElementById('filterResultStatus').value;
+      const body = { pageNo: page, pageSize: PAGE_SIZE };
+      if (userId) body.userId = userId;
+      if (businessCode) body.businessCode = businessCode;
+      if (fileName) body.fileName = fileName;
+      if (resultStatus) body.resultStatus = resultStatus;
+
+      const tbody = document.getElementById('fileBody');
+      tbody.innerHTML = '<tr><td colspan="7" class="om-empty">조회 중...</td></tr>';
+      const { body: data, relay } = await OmAdmin.inquiry('fileDownload', body);
+      document.getElementById('listStatus').textContent = `${relay.elapsedMs}ms · 총 ${data.totalCount ?? 0}건`;
+
+      const rows = data.rows || [];
+      tbody.innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'downloadTime')}</td>
+          <td>${OmAdmin.field(r, 'userId')}</td>
+          <td>${OmAdmin.field(r, 'businessCode')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'fileName')}</td>
+          <td>${formatSize(OmAdmin.field(r, 'fileSize', 0))}</td>
+          <td>${OmAdmin.chipForResult(OmAdmin.field(r, 'resultStatus'))}</td>
+          <td>${OmAdmin.field(r, 'clientIp')}</td>
+        </tr>`).join('') : '<tr><td colspan="7" class="om-empty">이력 없음</td></tr>';
+
+      OmAdmin.renderPagination(document.getElementById('pagination'), data.pageNo || page, PAGE_SIZE, data.totalCount || 0,
+        p => load(p, el).catch(e => OmAdmin.showError(el, e.message)));
+    }
+
+    OmAdmin.initPage('file-download', '파일 다운로드 이력', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">대용량 리포트·파일 다운로드 이력을 조회합니다. 실제 파일 전송은 UD(common-updownload) 모듈과 연동됩니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterUserId">사용자ID</label><input id="filterUserId" type="text"></div>
+          <div class="field"><label for="filterBusinessCode">업무코드</label><input id="filterBusinessCode" type="text"></div>
+          <div class="field"><label for="filterFileName">파일명</label><input id="filterFileName" type="text"></div>
+          <div class="field"><label for="filterResultStatus">결과</label>
+            <select id="filterResultStatus"><option value="">전체</option><option value="SUCCESS">SUCCESS</option><option value="FAIL">FAIL</option></select>
+          </div>
+          <div class="actions" style="display:flex;gap:8px;align-items:end">
+            <button class="btn-primary" id="searchBtn" type="button">조회</button>
+          </div>
+        </section>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:0.85rem" id="listStatus">-</div>
+        <div class="om-card">
+          <div class="om-card-head">다운로드 이력</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead><tr><th>일시</th><th>사용자</th><th>업무</th><th>파일명</th><th>크기</th><th>결과</th><th>IP</th></tr></thead>
+              <tbody id="fileBody"></tbody>
+            </table>
+            <div class="om-pagination" id="pagination" hidden></div>
+          </div>
+        </div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(1, el).catch(e => OmAdmin.showError(el, e.message)));
+      await load(1, el);
+    });
+  </script>
+</body>
+</html>

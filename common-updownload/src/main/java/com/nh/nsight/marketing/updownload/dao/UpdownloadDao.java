@@ -95,6 +95,39 @@ public class UpdownloadDao {
         return UpdownloadRowNormalizer.normalizeFileRows(mapper.selectFileList(parameter));
     }
 
+    public List<Map<String, Object>> searchFiles(Map<String, Object> criteria) {
+        return UpdownloadRowNormalizer.normalizeFileRows(mapper.searchFileList(criteria));
+    }
+
+    public int countFiles(Map<String, Object> criteria) {
+        return mapper.countFileList(criteria);
+    }
+
+    public Map<String, Object> updateDescription(String fileId, String description) {
+        Map<String, Object> parameter = new HashMap<>();
+        parameter.put("fileId", fileId);
+        parameter.put("description", description);
+        int updated = mapper.updateFileDescription(parameter);
+        if (updated == 0) {
+            throw new BusinessException("E-UD-DWN-0002", "파일을 찾을 수 없습니다: " + fileId);
+        }
+        return selectFileById(fileId);
+    }
+
+    public void deleteFile(String fileId) {
+        Map<String, Object> fileMeta = selectFileById(fileId);
+        Path storedPath = resolveStoredPath(fileMeta);
+        try {
+            Files.deleteIfExists(storedPath);
+        } catch (IOException e) {
+            throw new BusinessException("E-UD-DEL-0003", "파일 삭제에 실패했습니다.");
+        }
+        int deleted = mapper.deleteFile(Map.of("fileId", fileId));
+        if (deleted == 0) {
+            throw new BusinessException("E-UD-DWN-0002", "파일을 찾을 수 없습니다: " + fileId);
+        }
+    }
+
     public Path resolveStoredPath(Map<String, Object> fileMeta) {
         return Paths.get(UpdownloadRowNormalizer.readString(fileMeta, "storedPath"));
     }

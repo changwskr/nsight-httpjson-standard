@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 데이터권한</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    async function load(el) {
+      const authGroupId = document.getElementById('filterGroup').value;
+      const body = authGroupId ? { authGroupId } : {};
+      const { body: data } = await OmAdmin.inquiry('dataAuth', body);
+      const rows = data.rows || [];
+      document.getElementById('daBody').innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r,'authGroupName')}</td>
+          <td>${OmAdmin.field(r,'branchScope')}</td>
+          <td>${OmAdmin.field(r,'customerAccessLevel')}</td>
+          <td>${OmAdmin.field(r,'description')}</td>
+        </tr>`).join('') : '<tr><td colspan="4" class="om-empty">없음</td></tr>';
+    }
+
+    OmAdmin.initPage('data-auth', '데이터권한 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">지점 범위·고객정보 접근 범위를 권한그룹별로 확인합니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterGroup">권한그룹</label>
+            <select id="filterGroup"><option value="">전체</option><option>ROLE_ADMIN</option><option>ROLE_OPERATOR</option><option>ROLE_VIEWER</option></select>
+          </div>
+          <button class="btn-primary" id="searchBtn" type="button">조회</button>
+        </section>
+        <div class="om-card"><div class="om-card-head">데이터권한 목록</div><div class="om-card-body om-table-wrap">
+          <table class="om-table"><thead><tr><th>권한그룹</th><th>지점범위</th><th>고객접근</th><th>설명</th></tr></thead>
+          <tbody id="daBody"></tbody></table>
+        </div></div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(el).catch(e => OmAdmin.showError(el, e.message)));
+      await load(el);
+    });
+  </script>
+</body>
+</html>

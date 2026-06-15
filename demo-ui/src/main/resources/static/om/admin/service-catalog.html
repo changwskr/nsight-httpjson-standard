@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM ServiceId 관리</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    async function loadCatalog(el) {
+      const businessCode = document.getElementById('filterBusinessCode').value.trim();
+      const serviceId = document.getElementById('filterServiceId').value.trim();
+      const useYn = document.getElementById('filterUseYn').value;
+      const body = {};
+      if (businessCode) body.businessCode = businessCode;
+      if (serviceId) body.serviceId = serviceId;
+      if (useYn) body.useYn = useYn;
+
+      const tbody = document.getElementById('catalogBody');
+      tbody.innerHTML = '<tr><td colspan="10" class="om-empty">조회 중...</td></tr>';
+
+      const { body: data, relay } = await OmAdmin.inquiry('serviceCatalog', body);
+      const rows = data.rows || data.catalog || [];
+
+      document.getElementById('listStatus').textContent = `${relay.elapsedMs}ms · ${rows.length}건`;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="om-empty">등록된 ServiceId가 없습니다.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${OmAdmin.field(r, 'businessCode')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'serviceId')}</td>
+          <td>${OmAdmin.field(r, 'transactionCode')}</td>
+          <td>${OmAdmin.field(r, 'processingType')}</td>
+          <td class="om-mono">${OmAdmin.field(r, 'handlerClass')}</td>
+          <td>${OmAdmin.field(r, 'authCode')}</td>
+          <td>${OmAdmin.field(r, 'auditYn') === 'Y' ? '<span class="om-chip warn">Y</span>' : 'N'}</td>
+          <td>${OmAdmin.field(r, 'timeoutSec')}초</td>
+          <td>${OmAdmin.field(r, 'useYn') === 'Y' ? '<span class="om-chip ok">Y</span>' : '<span class="om-chip muted">N</span>'}</td>
+          <td>${OmAdmin.field(r, 'description')}</td>
+        </tr>`).join('');
+    }
+
+    OmAdmin.initPage('service-catalog', 'ServiceId / 거래코드 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">HTTP/JSON 전문 방식의 핵심 기준정보입니다. Handler · 권한 · 감사대상 · Timeout을 확인합니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterBusinessCode">업무코드</label><input id="filterBusinessCode" type="text" placeholder="예: SV"></div>
+          <div class="field"><label for="filterServiceId">ServiceId</label><input id="filterServiceId" type="text"></div>
+          <div class="field"><label for="filterUseYn">사용여부</label>
+            <select id="filterUseYn"><option value="">전체</option><option value="Y" selected>Y</option><option value="N">N</option></select>
+          </div>
+          <div class="actions" style="display:flex;gap:8px;align-items:end">
+            <button class="btn-primary" id="searchBtn" type="button">조회</button>
+          </div>
+        </section>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:0.85rem" id="listStatus">-</div>
+        <div class="om-card">
+          <div class="om-card-head">ServiceId 카탈로그</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead><tr>
+                <th>업무</th><th>ServiceId</th><th>거래코드</th><th>처리유형</th><th>Handler</th>
+                <th>권한</th><th>감사</th><th>Timeout</th><th>사용</th><th>설명</th>
+              </tr></thead>
+              <tbody id="catalogBody"></tbody>
+            </table>
+          </div>
+        </div>`;
+
+      document.getElementById('searchBtn').addEventListener('click', () =>
+        loadCatalog(el).catch(e => OmAdmin.showError(el, e.message)));
+      await loadCatalog(el);
+    }).catch(err => alert(err.message));
+  </script>
+</body>
+</html>

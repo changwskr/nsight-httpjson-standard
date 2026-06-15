@@ -1,0 +1,289 @@
+[
+  {
+    "label": "운영 대시보드",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.Dashboard.inquiry",
+        "transactionCode": "OM-DSH-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "centerId": "DC1",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {
+        "baseDate": "2026-06-14"
+      }
+    }
+  },
+  {
+    "label": "거래로그 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.TransactionLog.inquiry",
+        "transactionCode": "OM-TXL-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {
+        "serviceId": "SV",
+        "resultStatus": "FAIL",
+        "pageNo": 1,
+        "pageSize": 20
+      }
+    }
+  },
+  {
+    "label": "ServiceId 카탈로그",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.ServiceCatalog.inquiry",
+        "transactionCode": "OM-SVC-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {
+        "businessCode": "OM",
+        "useYn": "Y"
+      }
+    }
+  },
+  {
+    "label": "사용자 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.User.inquiry",
+        "transactionCode": "OM-USR-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {}
+    }
+  },
+  {
+    "label": "메뉴 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.Menu.inquiry",
+        "transactionCode": "OM-MNU-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {
+        "useYn": "Y"
+      }
+    }
+  },
+  {
+    "label": "권한그룹 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.AuthGroup.inquiry",
+        "transactionCode": "OM-AUT-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {}
+    }
+  },
+  {
+    "label": "감사로그 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.AuditLog.inquiry",
+        "transactionCode": "OM-AUD-0001",
+        "processingType": "INQUIRY",
+        "guid": "",
+        "traceId": "",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {
+        "functionId": "CUSTOMER_INQUIRY",
+        "pageNo": 1,
+        "pageSize": 20
+      }
+    }
+  },
+  {
+    "label": "오류코드 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.ErrorCode.inquiry",
+        "transactionCode": "OM-ERR-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "useYn": "Y" }
+    }
+  },
+  {
+    "label": "배치 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.Batch.inquiry",
+        "transactionCode": "OM-BAT-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "pageNo": 1, "pageSize": 10 }
+    }
+  },
+  {
+    "label": "Health Check",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.HealthCheck.inquiry",
+        "transactionCode": "OM-HLT-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {}
+    }
+  },
+  {
+    "label": "환경설정 조회",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.SystemConfig.inquiry",
+        "transactionCode": "OM-CFG-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": {}
+    }
+  },
+  {
+    "label": "다운로드 이력",
+    "sampleRequest": {
+      "header": {
+        "systemId": "NSIGHT-MP",
+        "businessCode": "OM",
+        "serviceId": "OM.FileDownload.inquiry",
+        "transactionCode": "OM-FIL-0001",
+        "processingType": "INQUIRY",
+        "channelId": "WEBTOP",
+        "userId": "admin01",
+        "branchId": "000001",
+        "requestTime": "2026-06-14T10:30:00+09:00",
+        "transactionIntime": "2026-06-14T10:30:00+09:00",
+        "systemDate": "20260614",
+        "bizDate": "20260614",
+        "clientIp": "10.10.10.10"
+      },
+      "body": { "pageNo": 1, "pageSize": 20 }
+    }
+  },
+  {
+    "label": "Sample Inquiry (legacy)",
+    "sampleFile": "om-sample-inquiry.json"
+  }
+]

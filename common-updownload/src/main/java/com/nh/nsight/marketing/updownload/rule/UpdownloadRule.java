@@ -46,9 +46,52 @@ public class UpdownloadRule {
         validateBusinessCode(context);
     }
 
+    public void validateDetail(TransactionContext context, Map<String, Object> body) {
+        validateBusinessCode(context);
+        validateFileIdInBody(body);
+    }
+
+    public void validateUpdate(TransactionContext context, Map<String, Object> body) {
+        validateBusinessCode(context);
+        validateFileIdInBody(body);
+    }
+
+    public void validateDelete(TransactionContext context, Map<String, Object> body) {
+        validateBusinessCode(context);
+        validateFileIdInBody(body);
+    }
+
     public void validateFileId(String fileId) {
         if (!StringUtils.hasText(fileId)) {
             throw new BusinessException("E-UD-DWN-0001", "fileId는 필수입니다.");
+        }
+    }
+
+    public void normalizeSearchCriteria(Map<String, Object> body) {
+        if (!StringUtils.hasText(stringValue(body.get("businessCode")))) {
+            body.put("businessCode", "UD");
+        }
+        int pageNo = Math.max(1, toInt(body.get("pageNo"), 1));
+        int pageSize = Math.min(100, Math.max(1, toInt(body.get("pageSize"), 20)));
+        body.put("pageNo", pageNo);
+        body.put("pageSize", pageSize);
+        body.put("offset", (pageNo - 1) * pageSize);
+    }
+
+    private void validateFileIdInBody(Map<String, Object> body) {
+        if (!StringUtils.hasText(stringValue(body.get("fileId")))) {
+            throw new BusinessException("E-UD-DWN-0001", "fileId는 필수입니다.");
+        }
+    }
+
+    private int toInt(Object value, int defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return defaultValue;
         }
     }
 

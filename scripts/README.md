@@ -1,11 +1,11 @@
 # scripts — 프로젝트 루트 Gradle 편의 스크립트
 
-Linux/macOS/Git Bash에서 **반복 Gradle 명령**을 짧게 실행하기 위한 셸 스크립트 모음입니다. Tomcat 설치·배포는 [`ztomcat/`](../ztomcat/README.md), demo-ui 전용 실행은 [`demo-ui/run-demo-ui.sh`](../demo-ui/run-demo-ui.sh)를 사용합니다.
+Linux/macOS/Git Bash 및 **Windows CMD**에서 **반복 Gradle 명령**을 짧게 실행하기 위한 스크립트 모음입니다. Tomcat 설치·배포는 [`ztomcat/`](../ztomcat/README.md), demo-ui 전용 실행은 [`demo-ui/run-demo-ui.sh`](../demo-ui/run-demo-ui.sh)를 사용합니다.
 
 | 항목 | 값 |
 |------|-----|
 | 위치 | `scripts/` |
-| 실행 OS | Linux, macOS, Git Bash (Windows) |
+| 실행 OS | Linux, macOS, Git Bash, **Windows CMD** |
 | 사전 요구 | **JDK 21**, **Gradle 8.x** (`PATH`에 `gradle`) |
 | 실행 위치 | **프로젝트 루트** (`nsight-httpjson-standard/`) |
 
@@ -52,8 +52,8 @@ Tomcat 배포
 
 | 파일 | 설명 |
 |------|------|
-| [`build-all.sh`](build-all.sh) | `clean build bootWar` — 19개 WAR + 테스트 포함 전체 빌드 |
-| [`run-local-sv.sh`](run-local-sv.sh) | `:sv-service:bootRun` — SV 업무 embedded 서버 기동 |
+| [`build-all.sh`](build-all.sh) / [`build-all.bat`](build-all.bat) | `clean build bootWar` — 19개 WAR + 테스트 포함 전체 빌드 |
+| [`run-local-sv.sh`](run-local-sv.sh) / [`run-local-sv.bat`](run-local-sv.bat) | `:sv-service:bootRun` — SV 업무 embedded 서버 기동 |
 
 공통 동작:
 
@@ -151,16 +151,18 @@ gradle :common-etc:bootRun    # :8098
 
 ---
 
-## 5. Windows에서 동일 작업
+## 5. Windows (CMD)
 
-`scripts/*.sh`는 Git Bash/WSL에서 실행합니다. **PowerShell/CMD**에서는 Gradle을 직접 호출하면 됩니다.
+| scripts | 명령 |
+|---------|------|
+| `scripts\build-all.bat` | `gradle clean build bootWar` |
+| `scripts\run-local-sv.bat` | `gradle :sv-service:bootRun` |
 
-| scripts | Windows (프로젝트 루트) |
-|---------|-------------------------|
-| `build-all.sh` | `gradle clean build bootWar` |
-| `run-local-sv.sh` | `gradle :sv-service:bootRun` |
+프로젝트 루트 또는 `scripts\`에서 실행 가능합니다 (`%~dp0..`로 루트 이동).
 
 Tomcat 배포는 [`ztomcat/*.bat`](../ztomcat/README.md)을 사용합니다.
+
+Git Bash/WSL에서는 `*.sh`를 사용하세요.
 
 ---
 

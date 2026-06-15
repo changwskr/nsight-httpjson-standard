@@ -39,17 +39,62 @@
          WHERE FILE_ID = #{fileId}
     </select>
 
+    <sql id="fileListColumns">
+        FILE_ID AS "fileId",
+        ORIGINAL_NAME AS "originalName",
+        CONTENT_TYPE AS "contentType",
+        FILE_SIZE AS "fileSize",
+        UPLOAD_USER AS "uploadUser",
+        UPLOAD_TIME AS "uploadTime",
+        BUSINESS_CODE AS "businessCode",
+        DESCRIPTION AS "description"
+    </sql>
+
+    <sql id="fileSearchWhere">
+        WHERE BUSINESS_CODE = #{businessCode}
+        <if test="originalName != null and originalName != ''">
+            AND ORIGINAL_NAME LIKE '%' || #{originalName} || '%'
+        </if>
+        <if test="uploadUser != null and uploadUser != ''">
+            AND UPLOAD_USER = #{uploadUser}
+        </if>
+        <if test="fromDate != null and fromDate != ''">
+            AND UPLOAD_TIME &gt;= #{fromDate}
+        </if>
+        <if test="toDate != null and toDate != ''">
+            AND UPLOAD_TIME &lt;= #{toDate}
+        </if>
+    </sql>
+
     <select id="selectFileList" parameterType="map" resultType="map">
-        SELECT FILE_ID AS "fileId",
-               ORIGINAL_NAME AS "originalName",
-               CONTENT_TYPE AS "contentType",
-               FILE_SIZE AS "fileSize",
-               UPLOAD_USER AS "uploadUser",
-               UPLOAD_TIME AS "uploadTime",
-               BUSINESS_CODE AS "businessCode",
-               DESCRIPTION AS "description"
+        SELECT <include refid="fileListColumns"/>
           FROM UD_FILE
-         WHERE BUSINESS_CODE = #{businessCode}
+        <include refid="fileSearchWhere"/>
          ORDER BY UPLOAD_TIME DESC
     </select>
+
+    <select id="searchFileList" parameterType="map" resultType="map">
+        SELECT <include refid="fileListColumns"/>
+          FROM UD_FILE
+        <include refid="fileSearchWhere"/>
+         ORDER BY UPLOAD_TIME DESC
+         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="countFileList" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM UD_FILE
+        <include refid="fileSearchWhere"/>
+    </select>
+
+    <update id="updateFileDescription" parameterType="map">
+        UPDATE UD_FILE
+           SET DESCRIPTION = #{description}
+         WHERE FILE_ID = #{fileId}
+    </update>
+
+    <delete id="deleteFile" parameterType="map">
+        DELETE FROM UD_FILE
+         WHERE FILE_ID = #{fileId}
+    </delete>
 </mapper>

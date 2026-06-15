@@ -18,3 +18,12 @@ dependencies {
 bootJar {
     archiveFileName = 'demo-ui.jar'
 }
+
+tasks.register('syncIdeResources', Copy) {
+    from sourceSets.main.resources
+    into layout.projectDirectory.dir('bin/main')
+}
+
+tasks.named('classes') {
+    finalizedBy tasks.named('syncIdeResources')
+}

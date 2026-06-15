@@ -28,6 +28,10 @@ public class TransactionRelayService {
     public String resolveTargetUrl(String businessCode, RelayOptions options) {
         BusinessModuleInfo module = catalog.findByCode(businessCode);
         String baseUrl = resolveBaseUrl(module, options);
+        if (resolveMode(options) == DemoUiProperties.DeploymentMode.bootrun) {
+            // bootRun: context-path는 / 이므로 http://host:port/online
+            return baseUrl + "/online";
+        }
         return baseUrl + module.contextPath() + "/online";
     }
 

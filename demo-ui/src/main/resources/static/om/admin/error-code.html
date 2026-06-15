@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OM 오류코드 관리</title>
+  <link rel="stylesheet" href="/_shared/online.css">
+  <link rel="stylesheet" href="/_shared/om-admin.css">
+</head>
+<body>
+  <script src="/_shared/om-admin.js"></script>
+  <script>
+    async function load(el) {
+      const errorCode = document.getElementById('filterErrorCode').value.trim();
+      const errorCategory = document.getElementById('filterCategory').value;
+      const useYn = document.getElementById('filterUseYn').value;
+      const body = {};
+      if (errorCode) body.errorCode = errorCode;
+      if (errorCategory) body.errorCategory = errorCategory;
+      if (useYn) body.useYn = useYn;
+
+      const tbody = document.getElementById('errorBody');
+      tbody.innerHTML = '<tr><td colspan="7" class="om-empty">조회 중...</td></tr>';
+      const { body: data, relay } = await OmAdmin.inquiry('errorCode', body);
+      document.getElementById('listStatus').textContent = `${relay.elapsedMs}ms · ${data.totalCount ?? 0}건`;
+
+      const rows = data.rows || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="om-empty">오류코드 없음</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr data-code="${OmAdmin.field(r, 'errorCode')}" style="cursor:pointer">
+          <td class="om-mono">${OmAdmin.field(r, 'errorCode')}</td>
+          <td>${OmAdmin.field(r, 'errorCategory')}</td>
+          <td>${OmAdmin.field(r, 'userMessage')}</td>
+          <td>${OmAdmin.field(r, 'operatorMessage')}</td>
+          <td>${OmAdmin.field(r, 'actionGuide')}</td>
+          <td>${OmAdmin.field(r, 'notifyTarget')}</td>
+          <td>${OmAdmin.field(r, 'useYn') === 'Y' ? '<span class="om-chip ok">Y</span>' : '<span class="om-chip muted">N</span>'}</td>
+        </tr>`).join('');
+      tbody.querySelectorAll('tr[data-code]').forEach(tr => {
+        const code = tr.dataset.code;
+        const cells = tr.children;
+        tr.addEventListener('click', () => {
+          document.getElementById('sCode').value = code;
+          document.getElementById('sCat').value = cells[1].textContent;
+          document.getElementById('sUser').value = cells[2].textContent;
+          document.getElementById('sOp').value = cells[3].textContent;
+          document.getElementById('sGuide').value = cells[4].textContent;
+          document.getElementById('sNotify').value = cells[5].textContent;
+        });
+      });
+    }
+
+    OmAdmin.initPage('error-code', '오류코드 / 메시지 관리', async (el) => {
+      el.innerHTML = `
+        <div class="om-alert info">표준 응답의 errorCode·메시지를 통제합니다. 저장 시 권한이력에 기록됩니다.</div>
+        <section class="om-filter-bar">
+          <div class="field"><label for="filterErrorCode">오류코드</label><input id="filterErrorCode" type="text"></div>
+          <div class="field"><label for="filterCategory">분류</label>
+            <select id="filterCategory"><option value="">전체</option><option>BIZ</option><option>SYS</option><option>DB</option><option>AUTH</option><option>VALIDATION</option></select>
+          </div>
+          <div class="field"><label for="filterUseYn">사용</label>
+            <select id="filterUseYn"><option value="">전체</option><option value="Y" selected>Y</option><option value="N">N</option></select>
+          </div>
+          <div class="actions" style="display:flex;gap:8px;align-items:end">
+            <button class="btn-primary" id="searchBtn" type="button">조회</button>
+          </div>
+        </section>
+        <div class="om-form-panel">
+          <h3>오류코드 등록 / 수정</h3>
+          <div class="om-form-grid">
+            <div class="field"><label for="sCode">오류코드</label><input id="sCode" type="text"></div>
+            <div class="field"><label for="sCat">분류</label><select id="sCat"><option>BIZ</option><option>SYS</option><option>DB</option><option>AUTH</option><option>VALIDATION</option></select></div>
+            <div class="field field-wide"><label for="sUser">사용자 메시지</label><input id="sUser" type="text"></div>
+            <div class="field field-wide"><label for="sOp">운영자 메시지</label><input id="sOp" type="text"></div>
+            <div class="field field-wide"><label for="sGuide">조치방법</label><input id="sGuide" type="text"></div>
+            <div class="field"><label for="sNotify">알림대상</label><input id="sNotify" type="text"></div>
+            <div class="field field-wide"><label for="sReason">변경 사유</label><input id="sReason" type="text"></div>
+          </div>
+          <button class="btn-primary" id="saveBtn" type="button" style="margin-top:12px">저장</button>
+        </div>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:0.85rem" id="listStatus">-</div>
+        <div class="om-card">
+          <div class="om-card-head">오류코드 목록</div>
+          <div class="om-card-body om-table-wrap">
+            <table class="om-table">
+              <thead><tr><th>오류코드</th><th>분류</th><th>사용자 메시지</th><th>운영자 메시지</th><th>조치방법</th><th>알림대상</th><th>사용</th></tr></thead>
+              <tbody id="errorBody"></tbody>
+            </table>
+          </div>
+        </div>`;
+      document.getElementById('searchBtn').addEventListener('click', () => load(el).catch(e => OmAdmin.showError(el, e.message)));
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        try {
+          const { body } = await OmAdmin.mutate('errorCodeSave', {
+            errorCode: document.getElementById('sCode').value.trim(),
+            errorCategory: document.getElementById('sCat').value,
+            userMessage: document.getElementById('sUser').value.trim(),
+            operatorMessage: document.getElementById('sOp').value.trim(),
+            actionGuide: document.getElementById('sGuide').value.trim(),
+            notifyTarget: document.getElementById('sNotify').value.trim(),
+            useYn: 'Y',
+            changeReason: document.getElementById('sReason').value.trim()
+          }, 'UPDATE');
+          alert('저장 완료 (' + body.mode + '): ' + body.errorCode);
+          await load(el);
+        } catch (e) { alert(e.message); }
+      });
+      await load(el);
+    });
+  </script>
+</body>
+</html>

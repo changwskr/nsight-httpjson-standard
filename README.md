@@ -158,7 +158,8 @@ Handler·Dispatcher 상세: [`common-web/README.md`](common-web/README.md#6-hand
 ```bash
 gradle :sv-service:bootRun
 # 또는
-scripts/run-local-sv.sh
+scripts/run-local-sv.sh      # Linux/Git Bash
+scripts\run-local-sv.bat     # Windows CMD
 ```
 
 ```bash
