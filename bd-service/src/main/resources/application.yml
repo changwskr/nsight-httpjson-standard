@@ -7,19 +7,14 @@ server:
       charset: UTF-8
       enabled: true
       force: true
-    session:
-      timeout: 60m
-      tracking-modes: cookie
-      cookie:
-        name: JSESSIONID
-        path: /
-        http-only: true
-        secure: false
-        same-site: Lax
 
 spring:
   application:
     name: nsight-bd-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
   profiles:
     active: local
   datasource:
@@ -27,12 +22,6 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-  session:
-    store-type: jdbc
-    timeout: 60m
-    jdbc:
-      initialize-schema: embedded
-      table-name: SPRING_SESSION
   transaction:
     default-timeout: 5
   jackson:
@@ -64,9 +53,6 @@ nsight:
     system-id: NSIGHT-MP
     business-code: BD
     ap-id: local-bd-ap01
-    session-validation-enabled: false
-    authorization-validation-enabled: false
-    idempotency-enabled: false
   timeout:
     online-transaction-seconds: 5
     db-query-seconds: 3

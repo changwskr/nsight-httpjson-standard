@@ -7,19 +7,14 @@ server:
       charset: UTF-8
       enabled: true
       force: true
-    session:
-      timeout: 60m
-      tracking-modes: cookie
-      cookie:
-        name: JSESSIONID
-        path: /
-        http-only: true
-        secure: false
-        same-site: Lax
 
 spring:
   application:
     name: nsight-updownload-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
   profiles:
     active: local
   datasource:
@@ -31,12 +26,6 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
-  session:
-    store-type: jdbc
-    timeout: 60m
-    jdbc:
-      initialize-schema: never
-      table-name: SPRING_SESSION
   transaction:
     default-timeout: 10
   jackson:
@@ -72,9 +61,6 @@ nsight:
     system-id: NSIGHT-MP
     business-code: UD
     ap-id: local-ud-ap01
-    session-validation-enabled: false
-    authorization-validation-enabled: false
-    idempotency-enabled: false
   timeout:
     online-transaction-seconds: 10
     db-query-seconds: 5

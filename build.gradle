@@ -9,6 +9,13 @@ allprojects {
 }
 
 subprojects {
+    configurations.configureEach {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
+        exclude group: 'org.springframework.security', module: 'spring-security-config'
+        exclude group: 'org.springframework.security', module: 'spring-security-web'
+        exclude group: 'org.springframework.security', module: 'spring-security-core'
+    }
+
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.compilerArgs.add('-parameters')
